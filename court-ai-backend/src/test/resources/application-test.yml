@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:courtai_test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  flyway:
+    enabled: false  # Flyway disabled in tests - JPA creates schema via ddl-auto
+
+security:
+  jwt:
+    secret: test-secret-key-that-is-at-least-256-bits-long-for-testing-only-do-not-use-in-production
+    expiration-ms: 86400000
+    refresh-expiration-ms: 604800000
+
+logging:
+  config: classpath:logback-test.xml
+  level:
+    root: WARN
+    com.courtai: INFO
+
+app:
+  cors:
+    allowed-origins:
+      - "http://localhost:3000"
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600

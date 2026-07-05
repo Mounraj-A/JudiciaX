@@ -1,0 +1,172 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# =============================================
+# APPLICATION METADATA
+# =============================================
+spring:
+  application:
+    name: court-ai-backend
+
+  # =============================================
+  # DATASOURCE - PostgreSQL
+  # =============================================
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:courtai_db}
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: CourtAI-HikariPool
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      connection-test-query: SELECT 1
+
+  # =============================================
+  # JPA / HIBERNATE
+  # =============================================
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          time_zone: UTC
+        globally_quoted_identifiers: false
+        enable_lazy_load_no_trans: false
+        order_inserts: true
+        order_updates: true
+        jdbc.batch_size: 20
+
+  # =============================================
+  # FLYWAY - DATABASE MIGRATION
+  # =============================================
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    schemas: public
+    validate-on-migrate: true
+    out-of-order: false
+    encoding: UTF-8
+
+  # =============================================
+  # JACKSON
+  # =============================================
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+      indent-output: false
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    time-zone: UTC
+    default-property-inclusion: non_null
+
+  # =============================================
+  # MAIN
+  # =============================================
+  main:
+    allow-circular-references: false
+    banner-mode: console
+
+# =============================================
+# SECURITY - JWT
+# =============================================
+security:
+  jwt:
+    secret: ${JWT_SECRET:3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b}
+    expiration-ms: 86400000       # 24 hours
+    refresh-expiration-ms: 604800000  # 7 days
+    token-prefix: "Bearer "
+    header-string: "Authorization"
+
+# =============================================
+# SPRINGDOC / SWAGGER UI
+# =============================================
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  show-actuator: false
+  packages-to-scan: com.courtai
+
+# =============================================
+# ACTUATOR
+# =============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# =============================================
+# LOGGING
+# =============================================
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    root: INFO
+    com.courtai: DEBUG
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.flywaydb: INFO
+  file:
+    name: logs/court-ai-backend.log
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n"
+
+# =============================================
+# APPLICATION CUSTOM PROPERTIES
+# =============================================
+app:
+  name: "Court AI Backend"
+  version: "1.0.0"
+  timezone: "UTC"
+  cors:
+    allowed-origins:
+      - "http://localhost:3000"
+      - "http://localhost:4200"
+      - "http://localhost:5173"
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600

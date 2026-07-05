@@ -1,0 +1,69 @@
+# ============================================================
+# .gitignore — Court AI Backend
+# ============================================================
+
+# ── Maven ────────────────────────────────────────────────────
+target/
+*.jar
+*.war
+*.ear
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# ── IDE — IntelliJ IDEA ────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ── IDE — Eclipse / STS ────────────────────────────────────────
+.classpath
+.project
+.settings/
+bin/
+.factorypath
+
+# ── IDE — VS Code ──────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── Environment Variables (CRITICAL — NEVER COMMIT) ────────────
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# ── Logs ───────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+
+# ── OS Files ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Spring Boot ────────────────────────────────────────────────
+spring-shell.log
+
+# ── Docker ─────────────────────────────────────────────────────
+.dockerignore
+
+# ── JVM Crash Dumps ────────────────────────────────────────────
+hs_err_pid*
+replay_pid*
+
+# ── Security (CRITICAL — NEVER COMMIT) ─────────────────────────
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+*.keystore
+*.truststore
+secrets/

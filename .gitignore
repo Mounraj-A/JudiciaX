@@ -1,0 +1,25 @@
+# AI tool files
+.refact/
+
+# Documents
+Document/
+
+# Installers
+*.exe
+*.msi
+*.zip
+
+# Java
+**/target/
+*.class
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Environment
+.env
