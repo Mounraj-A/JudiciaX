@@ -54,7 +54,7 @@ public class SwaggerConfig {
                         
                         ### Authentication
                         Use the **Authorize** button to provide your JWT Bearer token.
-                        Format: `Bearer <your_token>`
+                        Enter only the raw JWT value (do not add `Bearer ` prefix).
                         
                         ### Roles
                         - `ROLE_ADMIN` — Full system access
@@ -88,6 +88,6 @@ public class SwaggerConfig {
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT")
-                .description("Enter JWT token in format: Bearer {token}");
+                                .description("Paste raw JWT token only. Swagger will add the Bearer prefix automatically.");
     }
 }

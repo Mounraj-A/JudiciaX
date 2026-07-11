@@ -2,6 +2,7 @@ package com.courtai.config;
 
 import com.courtai.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,26 +31,46 @@ import java.util.List;
 /**
  * Central Spring Security configuration for the Court AI Backend.
  *
- * <p>Configures:</p>
+ * <h3>Security Toggle</h3>
+ * <p>This class supports a runtime security toggle controlled by the
+ * {@code app.security.enabled} property in {@code application.yml}.</p>
+ *
  * <ul>
- *   <li>Stateless JWT-based session management</li>
- *   <li>CORS policy from application properties</li>
- *   <li>Public and protected endpoint rules</li>
- *   <li>Method-level security ({@code @PreAuthorize})</li>
- *   <li>BCrypt password encoding</li>
- *   <li>Security response headers</li>
+ *   <li><b>Development mode</b> ({@code app.security.enabled: false}):
+ *     <ul>
+ *       <li>The {@link JwtAuthenticationFilter} is NOT added to the filter chain.</li>
+ *       <li>All HTTP requests are permitted without a JWT token.</li>
+ *       <li>Swagger UI, Actuator, and all API endpoints are freely accessible.</li>
+ *       <li>CORS, response headers, and all other beans remain active.</li>
+ *       <li>Zero auth classes are modified or disabled — only the chain changes.</li>
+ *     </ul>
+ *   </li>
+ *   <li><b>Production mode</b> ({@code app.security.enabled: true}):
+ *     <ul>
+ *       <li>Full JWT authentication is enforced.</li>
+ *       <li>{@link JwtAuthenticationFilter} is registered before {@code UsernamePasswordAuthenticationFilter}.</li>
+ *       <li>Only {@link #PUBLIC_ENDPOINTS} are open; all others require authentication.</li>
+ *     </ul>
+ *   </li>
  * </ul>
+ *
+ * <p><b>How to switch:</b> Change {@code app.security.enabled} in {@code application.yml}.
+ * No Java code modification is ever needed.</p>
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter    jwtAuthenticationFilter;
+    private final UserDetailsService         userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final JwtAccessDeniedHandler     jwtAccessDeniedHandler;
+
+    /** Typed binding for {@code app.security.*} properties. */
+    private final AppSecurityProperties      securityProperties;
 
     @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:4200,http://localhost:5173}")
     private List<String> allowedOrigins;
@@ -67,7 +88,8 @@ public class SecurityConfig {
     private long maxAge;
 
     /**
-     * Public endpoints that do not require JWT authentication.
+     * Public endpoints that are always accessible regardless of the security toggle.
+     * In production mode these are open; in development mode ALL endpoints are open.
      */
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/**",
@@ -80,10 +102,54 @@ public class SecurityConfig {
     };
 
     /**
-     * Defines the main security filter chain.
+     * Builds the Spring Security filter chain.
+     *
+     * <p>Behaviour is determined at startup by {@code app.security.enabled}:</p>
+     * <ul>
+     *   <li>{@code false} → Development mode: permit all, skip JWT filter.</li>
+     *   <li>{@code true}  → Production mode: JWT filter + endpoint authorization rules.</li>
+     * </ul>
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        if (!securityProperties.isEnabled()) {
+            // ══════════════════════════════════════════════════════════════
+            //  DEVELOPMENT MODE — Security is DISABLED
+            //  • JWT filter is NOT registered.
+            //  • All endpoints are publicly accessible.
+            //  • CORS and response headers remain active for accuracy.
+            //  • Toggle back to production: app.security.enabled: true
+            // ══════════════════════════════════════════════════════════════
+            log.warn("╔══════════════════════════════════════════════════════╗");
+            log.warn("║  ⚠  SECURITY IS DISABLED — DEVELOPMENT MODE ACTIVE  ║");
+            log.warn("║  All API endpoints are publicly accessible.          ║");
+            log.warn("║  Set app.security.enabled=true for production.       ║");
+            log.warn("╚══════════════════════════════════════════════════════╝");
+
+            http
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .sessionManagement(session ->
+                            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .anyRequest().permitAll())
+                    .headers(headers -> headers
+                            .frameOptions(frame -> frame.sameOrigin())   // relax for Swagger iframes
+                            .xssProtection(xss -> xss.disable())
+                    );
+            // JWT filter intentionally NOT added in dev mode
+            return http.build();
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  PRODUCTION MODE — Full JWT authentication enforced
+        //  • JwtAuthenticationFilter processes every request.
+        //  • Only PUBLIC_ENDPOINTS bypass authentication.
+        //  • All other requests require a valid Bearer token.
+        // ══════════════════════════════════════════════════════════════════
+        log.info("Security is ENABLED — JWT authentication is enforced.");
+
         http
                 // ── Disable CSRF (stateless JWT — no session) ──────────────────────
                 .csrf(AbstractHttpConfigurer::disable)
@@ -127,6 +193,7 @@ public class SecurityConfig {
 
     /**
      * CORS configuration sourced from {@code application.yml}.
+     * Active in both development and production modes.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -144,6 +211,7 @@ public class SecurityConfig {
 
     /**
      * BCrypt password encoder with strength factor 12.
+     * Always available as a bean regardless of security toggle.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -152,6 +220,7 @@ public class SecurityConfig {
 
     /**
      * DAO authentication provider backed by {@link UserDetailsService} and BCrypt.
+     * Always registered as a bean — used by auth endpoints in both modes.
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -163,6 +232,7 @@ public class SecurityConfig {
 
     /**
      * Exposes the {@link AuthenticationManager} bean for use in auth services.
+     * Always available — auth services remain functional in development mode.
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

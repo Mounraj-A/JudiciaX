@@ -6,12 +6,17 @@
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
+CREATE SEQUENCE IF NOT EXISTS base_seq
+START WITH 1
+INCREMENT BY 1
+NO MINVALUE
+NO MAXVALUE
+CACHE 1;
 -- ============================================================
 -- USERS TABLE
 -- ============================================================
 CREATE TABLE users (
-    id                BIGSERIAL       PRIMARY KEY,
+    id BIGINT PRIMARY KEY DEFAULT nextval('base_seq'),
     uuid              VARCHAR(36)     NOT NULL UNIQUE,
     username          VARCHAR(50)     NOT NULL UNIQUE,
     email             VARCHAR(150)    NOT NULL UNIQUE,

@@ -1,5 +1,6 @@
 package com.courtai.exception;
 
+import com.courtai.common.constants.ErrorCode;
 import com.courtai.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -25,19 +26,8 @@ import java.util.stream.Collectors;
 /**
  * Centralized global exception handler for all REST controllers.
  *
- * <p>Intercepts exceptions thrown from controllers, services, and security filters,
- * then maps them to consistent {@link ApiResponse} payloads with appropriate HTTP status codes.</p>
- *
- * <p>Handles:</p>
- * <ul>
- *   <li>Bean Validation errors (400)</li>
- *   <li>Authentication failures (401)</li>
- *   <li>Access Denied / Forbidden (403)</li>
- *   <li>Resource Not Found (404)</li>
- *   <li>Duplicate Resource (409)</li>
- *   <li>Business Rule Violations (422)</li>
- *   <li>Internal Server Error fallback (500)</li>
- * </ul>
+ * <p>Maps every exception to a consistent {@link ApiResponse} with appropriate HTTP status code
+ * and standardised {@link ErrorCode}.</p>
  */
 @Slf4j
 @RestControllerAdvice
@@ -47,211 +37,250 @@ public class GlobalExceptionHandler {
     //  400 — VALIDATION ERRORS
     // =========================================================
 
-    /**
-     * Handles {@code @Valid} / {@code @Validated} bean validation failures.
-     * Collects all field-level error messages and returns them as a list.
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
-            MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-        List<String> errors = ex.getBindingResult()
-                .getAllErrors()
-                .stream()
+        List<String> errors = ex.getBindingResult().getAllErrors().stream()
                 .map(error -> {
-                    if (error instanceof FieldError fieldError) {
-                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
-                    }
+                    if (error instanceof FieldError fe) return fe.getField() + ": " + fe.getDefaultMessage();
                     return error.getDefaultMessage();
                 })
-                .sorted()
-                .collect(Collectors.toList());
+                .sorted().collect(Collectors.toList());
 
-        log.warn("Validation failed for request [{}] {}: {}",
-                request.getMethod(), request.getRequestURI(), errors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(400, "Validation failed", errors));
+        log.warn("Validation failed [{}] {}: {}", request.getMethod(), request.getRequestURI(), errors);
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, ErrorCode.VAL_001.getMessage(), errors));
     }
 
-    /**
-     * Handles malformed JSON request bodies.
-     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleMalformedJson(
-            HttpMessageNotReadableException ex,
-            HttpServletRequest request) {
-
-        log.warn("Malformed JSON request on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            HttpMessageNotReadableException ex, HttpServletRequest request) {
+        log.warn("Malformed JSON [{}] {}", request.getMethod(), request.getRequestURI());
+        return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "Malformed JSON request body"));
     }
 
-    /**
-     * Handles missing required request parameters.
-     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse<Void>> handleMissingParams(
-            MissingServletRequestParameterException ex,
-            HttpServletRequest request) {
-
-        log.warn("Missing request parameter on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "Missing required parameter: " + ex.getParameterName()));
     }
 
-    /**
-     * Handles type mismatch for method arguments (e.g. invalid UUID format).
-     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(
-            MethodArgumentTypeMismatchException ex,
-            HttpServletRequest request) {
-
-        String message = String.format("Parameter '%s' should be of type '%s'",
-                ex.getName(),
+            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        String msg = String.format("Parameter '%s' should be of type '%s'", ex.getName(),
                 ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
+        return ResponseEntity.badRequest().body(ApiResponse.error(400, msg));
+    }
 
-        log.warn("Type mismatch on [{}] {}: {}", request.getMethod(), request.getRequestURI(), message);
+    @ExceptionHandler({ InvalidTokenException.class, InvalidOtpException.class })
+    public ResponseEntity<ApiResponse<Void>> handleInvalidToken(RuntimeException ex, HttpServletRequest request) {
+        log.warn("Invalid token/OTP [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, ex.getMessage()));
+    }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(400, message));
+    @ExceptionHandler({ OtpExpiredException.class })
+    public ResponseEntity<ApiResponse<Void>> handleOtpExpired(OtpExpiredException ex) {
+        log.warn("OTP expired: {}", ex.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, ex.getMessage()));
     }
 
     // =========================================================
     //  401 — AUTHENTICATION ERRORS
     // =========================================================
 
-    /**
-     * Handles authentication failures such as invalid credentials or expired tokens.
-     */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
-            AuthenticationException ex,
-            HttpServletRequest request) {
-
-        log.warn("Authentication failed on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
+            AuthenticationException ex, HttpServletRequest request) {
+        log.warn("Authentication failed [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
         String message;
         if (ex instanceof BadCredentialsException) {
-            message = "Invalid username or password";
+            message = ErrorCode.AUTH_001.getMessage();
+        } else if (ex instanceof LockedException) {
+            message = ErrorCode.AUTH_002.getMessage();
         } else if (ex instanceof DisabledException) {
             message = "Account is disabled";
-        } else if (ex instanceof LockedException) {
-            message = "Account is locked";
         } else {
             message = "Authentication failed";
         }
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(401, message));
     }
 
-    // =========================================================
-    //  403 — ACCESS DENIED
-    // =========================================================
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        log.warn("Invalid credentials: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, ex.getMessage()));
+    }
 
-    /**
-     * Handles insufficient authorization — user authenticated but lacks required role/permission.
-     */
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(
-            AccessDeniedException ex,
-            HttpServletRequest request) {
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccountLocked(AccountLockedException ex) {
+        log.warn("Account locked: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, ex.getMessage()));
+    }
 
-        log.warn("Access denied on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTokenExpired(TokenExpiredException ex) {
+        log.warn("Token expired: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, ex.getMessage()));
+    }
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(403, "Access denied: You do not have permission to perform this action"));
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSessionExpired(SessionExpiredException ex) {
+        log.warn("Session expired: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, ex.getMessage()));
     }
 
     // =========================================================
-    //  404 — RESOURCE NOT FOUND
+    //  403 — FORBIDDEN / NOT VERIFIED
     // =========================================================
 
-    /**
-     * Handles requests for non-existent resources.
-     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
+            AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("Access denied [{}] {}", request.getMethod(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(403, ErrorCode.PERM_001.getMessage()));
+    }
+
+    @ExceptionHandler(AccountNotVerifiedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotVerified(AccountNotVerifiedException ex) {
+        log.warn("Account not verified: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(403, ex.getMessage()));
+    }
+
+    // =========================================================
+    //  404 — NOT FOUND
+    // =========================================================
+
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(
-            ResourceNotFoundException ex,
-            HttpServletRequest request) {
-
-        log.warn("Resource not found on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        log.warn("Not found [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(404, ex.getMessage()));
     }
 
-    /**
-     * Handles unsupported HTTP method requests.
-     */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(
-            HttpRequestMethodNotSupportedException ex,
-            HttpServletRequest request) {
-
-        log.warn("Method not supported on [{}] {}", request.getMethod(), request.getRequestURI());
-
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponse.error(405, "HTTP method not supported: " + ex.getMethod()));
     }
 
     // =========================================================
-    //  409 — DUPLICATE RESOURCE
+    //  404 — RBAC NOT FOUND
     // =========================================================
 
-    /**
-     * Handles duplicate resource creation conflicts.
-     */
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRoleNotFound(RoleNotFoundException ex, HttpServletRequest request) {
+        log.warn("Role not found [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(PermissionNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePermissionNotFound(PermissionNotFoundException ex, HttpServletRequest request) {
+        log.warn("Permission not found [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(404, ex.getMessage()));
+    }
+
+    // =========================================================
+    //  403 — RBAC UNAUTHORIZED ACTION
+    // =========================================================
+
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedAction(UnauthorizedActionException ex, HttpServletRequest request) {
+        log.warn("Unauthorized action [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(403, ex.getMessage()));
+    }
+
+    // =========================================================
+    //  409 — CONFLICT / DUPLICATE
+    // =========================================================
+
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDuplicateResourceException(
-            DuplicateResourceException ex,
-            HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleDuplicate(DuplicateResourceException ex, HttpServletRequest request) {
+        log.warn("Duplicate resource [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(409, ex.getMessage()));
+    }
 
-        log.warn("Duplicate resource on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+    @ExceptionHandler(DuplicateRoleException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateRole(DuplicateRoleException ex, HttpServletRequest request) {
+        log.warn("Duplicate role [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(409, ex.getMessage()));
+    }
 
+    @ExceptionHandler(DuplicatePermissionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicatePermission(DuplicatePermissionException ex, HttpServletRequest request) {
+        log.warn("Duplicate permission [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(409, ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateEmail(EmailAlreadyExistsException ex) {
+        log.warn("Duplicate email: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(409, ex.getMessage()));
+    }
+
+    @ExceptionHandler(PhoneAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicatePhone(PhoneAlreadyExistsException ex) {
+        log.warn("Duplicate phone: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(409, ex.getMessage()));
     }
 
     // =========================================================
-    //  422 — BUSINESS RULE VIOLATION
+    //  422 — BUSINESS RULE / PASSWORD POLICY
     // =========================================================
 
-    /**
-     * Handles business logic violations.
-     */
     @ExceptionHandler(BusinessRuleViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessRuleViolation(
-            BusinessRuleViolationException ex,
-            HttpServletRequest request) {
-
-        log.warn("Business rule violation on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
+    public ResponseEntity<ApiResponse<Void>> handleBusinessRule(BusinessRuleViolationException ex) {
+        log.warn("Business rule violation: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ApiResponse.error(422, ex.getMessage()));
     }
 
+    @ExceptionHandler(PasswordPolicyException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePasswordPolicy(PasswordPolicyException ex) {
+        log.warn("Password policy violation: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ApiResponse.error(422, ErrorCode.USER_002.getMessage(), ex.getViolations()));
+    }
+
     // =========================================================
-    //  500 — INTERNAL SERVER ERROR (Catch-All)
+    //  429 — RATE LIMIT
     // =========================================================
 
-    /**
-     * Catch-all handler for any unhandled exceptions.
-     * Logs the full stack trace but returns a safe generic message to the client.
-     */
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRateLimit(RateLimitExceededException ex) {
+        log.warn("Rate limit exceeded: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiResponse.error(429, ex.getMessage()));
+    }
+
+    // =========================================================
+    //  500 — CATCH-ALL
+    // =========================================================
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGenericException(
-            Exception ex,
-            HttpServletRequest request) {
-
-        log.error("Unexpected error on [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
-
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex, HttpServletRequest request) {
+        log.error("Unexpected error [{}] {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(500, "An unexpected internal server error occurred. Please try again later."));
+                .body(ApiResponse.error(500, ErrorCode.SYS_001.getMessage()));
     }
 }

@@ -1,57 +1,54 @@
 package com.courtai.user.repository;
 
-import com.courtai.user.entity.User;
+import com.courtai.common.enums.AccountStatus;
 import com.courtai.common.enums.UserRole;
+import com.courtai.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository for the {@link User} entity providing standard JPA operations
- * and custom query methods.
+ * Repository for the {@link User} entity.
  *
- * <p>All queries automatically exclude soft-deleted records via {@code is_deleted = false} conditions.</p>
+ * <p>All standard queries exclude soft-deleted records via {@code is_deleted = false}.
+ * Admin queries may include deleted records by using different method names.</p>
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    /**
-     * Finds an active (non-deleted) user by email.
-     */
     Optional<User> findByEmailAndIsDeletedFalse(String email);
-
-    /**
-     * Finds an active user by UUID (the externally exposed identifier).
-     */
     Optional<User> findByUuidAndIsDeletedFalse(String uuid);
+    Optional<User> findByPhoneNumberAndIsDeletedFalse(String phoneNumber);
 
-    /**
-     * Checks whether an email already exists in the system (including soft-deleted).
-     */
     boolean existsByEmail(String email);
-
-    /**
-     * Checks whether a username already exists.
-     */
     boolean existsByUsername(String username);
+    boolean existsByPhoneNumber(String phoneNumber);
 
-    /**
-     * Finds all active users with a specific role.
-     */
     List<User> findByRoleAndIsDeletedFalse(UserRole role);
-
-    /**
-     * Finds all active users.
-     */
     List<User> findAllByIsDeletedFalse();
+    List<User> findByAccountStatusAndIsDeletedFalse(AccountStatus accountStatus);
 
-    /**
-     * Custom JPQL query to find an active user by username or email.
-     */
     @Query("SELECT u FROM User u WHERE (u.username = :identifier OR u.email = :identifier) AND u.isDeleted = false")
     Optional<User> findByUsernameOrEmailAndIsDeletedFalse(@Param("identifier") String identifier);
+
+    /** Count users registered between two timestamps. */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt BETWEEN :from AND :to AND u.isDeleted = false")
+    long countByCreatedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Find accounts with timed locks that have now expired — for auto-unlock scheduler. */
+    @Query("SELECT u FROM User u WHERE u.accountStatus = 'LOCKED' AND u.accountLockedUntil IS NOT NULL AND u.accountLockedUntil < :now")
+    List<User> findExpiredLockedAccounts(@Param("now") LocalDateTime now);
+
+    /** Count accounts currently pending verification. */
+    long countByAccountStatusAndIsDeletedFalse(AccountStatus status);
+
+    @Modifying
+    @Query("UPDATE User u SET u.lastLogin = :time WHERE u.id = :id")
+    void updateLastLogin(@Param("id") Long id, @Param("time") LocalDateTime time);
 }

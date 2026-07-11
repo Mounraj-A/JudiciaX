@@ -96,7 +96,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String extractBearerToken(HttpServletRequest request) {
         String headerValue = request.getHeader(AUTHORIZATION_HEADER);
         if (StringUtils.hasText(headerValue) && headerValue.startsWith(BEARER_PREFIX)) {
-            return headerValue.substring(BEARER_PREFIX.length());
+            String token = headerValue.substring(BEARER_PREFIX.length()).trim();
+            // Swagger users sometimes paste "Bearer <token>" into a bearer-auth field,
+            // which already prepends "Bearer ". Normalize that accidental double prefix.
+            while (token.startsWith(BEARER_PREFIX)) {
+                token = token.substring(BEARER_PREFIX.length()).trim();
+            }
+            return token;
         }
         return null;
     }

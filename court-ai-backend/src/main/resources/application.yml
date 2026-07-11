@@ -21,7 +21,7 @@ spring:
   # DATASOURCE - PostgreSQL
   # =============================================
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:courtai_db}
+    url: jdbc:postgresql://localhost:5432/courtai_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -155,6 +155,26 @@ app:
   name: "Court AI Backend"
   version: "1.0.0"
   timezone: "UTC"
+
+  # =============================================
+  # SECURITY TOGGLE
+  # =============================================
+  # Development Mode  → app.security.enabled: false
+  #   • JWT filter is NOT registered.
+  #   • ALL endpoints are publicly accessible (no token required).
+  #   • Useful for local API testing (Swagger, Postman, curl).
+  #   • NO auth code is deleted — only the filter chain changes.
+  #
+  # Production Mode   → app.security.enabled: true
+  #   • Full JWT authentication is enforced.
+  #   • JwtAuthenticationFilter is registered in the chain.
+  #   • Only PUBLIC_ENDPOINTS (auth/**, swagger-ui/**, actuator) are open.
+  #   • All other endpoints require a valid Bearer token.
+  #
+  # ⚠️  IMPORTANT: Always set to true before deploying to any shared environment.
+  security:
+    enabled: true
+
   cors:
     allowed-origins:
       - "http://localhost:3000"
@@ -170,3 +190,21 @@ app:
     allowed-headers: "*"
     allow-credentials: true
     max-age: 3600
+
+  # =============================================
+  # FILE UPLOAD — Document & Evidence Storage
+  # =============================================
+  upload:
+    # Local base directory for all uploaded files
+    storage-path: uploads
+    # Maximum upload size in megabytes
+    max-file-size-mb: 50
+    # Allowed MIME types (pipe-separated)
+    allowed-mime-types:
+      - application/pdf
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      - image/png
+      - image/jpeg
+      - video/mp4
+      - audio/mpeg
+      - audio/wav

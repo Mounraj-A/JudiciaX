@@ -35,9 +35,17 @@ public abstract class BaseEntity {
      * Surrogate primary key — auto-generated Long ID used internally by JPA.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "base_seq")
-    @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+@SequenceGenerator(
+        name = "base_seq",
+        sequenceName = "base_seq",
+        allocationSize = 1
+)
+@GeneratedValue(
+        strategy = GenerationType.SEQUENCE,
+        generator = "base_seq"
+)
+@Column(name = "id", nullable = false, updatable = false)
+private Long id;
 
     /**
      * Business-facing UUID — unique, immutable, exposed externally via APIs.
