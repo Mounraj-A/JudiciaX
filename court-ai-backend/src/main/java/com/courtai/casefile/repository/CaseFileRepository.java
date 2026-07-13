@@ -15,9 +15,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 /** Repository for CaseFile — the central aggregate. */
 @Repository
-public interface CaseFileRepository extends JpaRepository<CaseFile, Long> {
+public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
+        JpaSpecificationExecutor<CaseFile> {
 
     Optional<CaseFile> findByCaseNumberAndIsDeletedFalse(String caseNumber);
 
@@ -37,7 +41,8 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long> {
     /** Returns all cases where the advocate is petitioner OR respondent. */
     @Query("""
             SELECT c FROM CaseFile c
-            WHERE (c.petitionerAdvocate.uuid = :advocateUuid OR c.respondentAdvocate.uuid = :advocateUuid)
+            WHERE (c.petitionerAdvocate.uuid = :advocateUuid
+               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
               AND c.isDeleted = false
             """)
     Page<CaseFile> findByAdvocateUuid(@Param("advocateUuid") String advocateUuid, Pageable pageable);
@@ -45,7 +50,8 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long> {
     /** Cases for advocate filtered by status. */
     @Query("""
             SELECT c FROM CaseFile c
-            WHERE (c.petitionerAdvocate.uuid = :advocateUuid OR c.respondentAdvocate.uuid = :advocateUuid)
+            WHERE (c.petitionerAdvocate.uuid = :advocateUuid
+               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
               AND c.status = :status
               AND c.isDeleted = false
             """)
@@ -57,7 +63,8 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long> {
     /** Keyword search across title and party names for a given advocate. */
     @Query("""
             SELECT c FROM CaseFile c
-            WHERE (c.petitionerAdvocate.uuid = :advocateUuid OR c.respondentAdvocate.uuid = :advocateUuid)
+            WHERE (c.petitionerAdvocate.uuid = :advocateUuid
+               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
               AND c.isDeleted = false
               AND (LOWER(c.caseTitle)       LIKE LOWER(CONCAT('%', :keyword, '%'))
                 OR LOWER(c.petitionerName) LIKE LOWER(CONCAT('%', :keyword, '%'))
@@ -73,7 +80,8 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long> {
     @Query("""
             SELECT COUNT(c) > 0 FROM CaseFile c
             WHERE c.uuid = :caseUuid
-              AND (c.petitionerAdvocate.uuid = :advocateUuid OR c.respondentAdvocate.uuid = :advocateUuid)
+              AND (c.petitionerAdvocate.uuid = :advocateUuid
+               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
               AND c.isDeleted = false
             """)
     boolean existsByUuidAndAdvocateUuid(

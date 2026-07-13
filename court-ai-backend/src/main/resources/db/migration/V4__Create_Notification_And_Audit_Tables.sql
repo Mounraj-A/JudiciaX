@@ -84,7 +84,7 @@ INSERT INTO users (
     '00000000-0000-0000-0000-000000000001',
     'system_admin',
     'admin@courtai.com',
-    '$2a$12$LqFO2eLp.jPxj5t65MZ2a.8q5hAg1xWvqnGWHVDXXlz7o4UaZ56gC',
+    '$2a$12$s/7bUYvwZvQ5VrEMl1UF4O1SFfT8Ylb8cBn7yRmMDxXlGHlS1JtVm',
     'System',
     'Administrator',
     'ROLE_ADMIN',

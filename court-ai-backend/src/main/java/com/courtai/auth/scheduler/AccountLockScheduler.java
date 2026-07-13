@@ -32,7 +32,7 @@ public class AccountLockScheduler {
      * Finds all accounts with expired timed locks and resets them to ACTIVE.
      * Runs every 60 seconds.
      */
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(fixedDelay = 60_000, initialDelay = 120_000)
     @Transactional
     public void autoUnlockExpiredAccounts() {
         List<User> expiredLocks = userRepository.findExpiredLockedAccounts(LocalDateTime.now());

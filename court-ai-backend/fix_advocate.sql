@@ -1,0 +1,1 @@
+UPDATE users SET password_hash = '$2a$12$Z8YMv5L.WWaAHJe2Pakfv.bClj8btgZZOdnEX6SCdRWOwxEvF7I0i' WHERE email = 'advocate.test@judiciai.com';

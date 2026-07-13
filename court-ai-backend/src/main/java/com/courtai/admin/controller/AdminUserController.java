@@ -1,6 +1,5 @@
 package com.courtai.admin.controller;
 
-import com.courtai.admin.service.AdminDashboardService;
 import com.courtai.admin.service.AdminUserService;
 import com.courtai.auth.dto.response.UserProfileResponse;
 import com.courtai.common.constants.ApiConstants;
@@ -21,7 +20,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 /**
  * Admin REST controller for user management and system monitoring.
@@ -39,7 +37,6 @@ import java.util.Map;
 public class AdminUserController {
 
     private final AdminUserService      adminUserService;
-    private final AdminDashboardService adminDashboardService;
 
     // =========================================================
     //  USER LISTING
@@ -148,14 +145,4 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.success(ApiConstants.MSG_USER_DELETED));
     }
 
-    // =========================================================
-    //  DASHBOARD
-    // =========================================================
-
-    @GetMapping("/dashboard")
-    @Operation(summary = "Get admin dashboard statistics")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboard() {
-        return ResponseEntity.ok(ApiResponse.success(ApiConstants.MSG_DASHBOARD_RETRIEVED,
-                adminDashboardService.getDashboardStats()));
-    }
 }

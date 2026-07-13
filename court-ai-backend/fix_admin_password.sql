@@ -1,0 +1,1 @@
+UPDATE users SET password_hash = '$2a$12$s/7bUYvwZvQ5VrEMl1UF4O1SFfT8Ylb8cBn7yRmMDxXlGHlS1JtVm' WHERE email = 'admin@courtai.com';

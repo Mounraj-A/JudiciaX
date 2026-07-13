@@ -51,5 +51,13 @@ public enum CaseStatus {
     /** Case formally closed. */
     CLOSED,
     /** Case taken to a higher court. */
-    APPEALED
+    APPEALED,
+
+    // ── Case Management Module additions ──────────────────────────────────
+    /** Case has been archived (read-only, terminal). */
+    ARCHIVED,
+    /** Case cancelled before registration by advocate or admin. */
+    CANCELLED,
+    /** Case transferred to another court. */
+    TRANSFERRED
 }
