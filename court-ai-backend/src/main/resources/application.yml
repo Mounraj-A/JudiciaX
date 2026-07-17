@@ -69,6 +69,16 @@ spring:
     encoding: UTF-8
 
   # =============================================
+  # MULTIPART FILE UPLOAD
+  # =============================================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 110MB
+      file-size-threshold: 100KB
+
+  # =============================================
   # JACKSON
   # =============================================
   jackson:

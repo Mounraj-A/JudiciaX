@@ -15,4 +15,6 @@ public interface CaseAnalysisRepository extends JpaRepository<CaseAnalysis, Long
     Optional<CaseAnalysis> findByCaseFileUuid(String caseFileUuid);
 
     Optional<CaseAnalysis> findByUuidAndIsDeletedFalse(String uuid);
+
+    Optional<CaseAnalysis> findTopByCaseFileIdOrderByCreatedAtDesc(Long caseFileId);
 }

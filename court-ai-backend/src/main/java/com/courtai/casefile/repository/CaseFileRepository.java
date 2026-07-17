@@ -79,9 +79,10 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
     /** Ownership check — validates a case belongs to the advocate before update/delete. */
     @Query("""
             SELECT COUNT(c) > 0 FROM CaseFile c
+            LEFT JOIN c.petitionerAdvocate pa
+            LEFT JOIN c.respondentAdvocate ra
             WHERE c.uuid = :caseUuid
-              AND (c.petitionerAdvocate.uuid = :advocateUuid
-               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
+              AND (pa.uuid = :advocateUuid OR ra.uuid = :advocateUuid)
               AND c.isDeleted = false
             """)
     boolean existsByUuidAndAdvocateUuid(

@@ -28,4 +28,6 @@ public interface HearingRepository extends JpaRepository<Hearing, Long> {
 
     /** Batch load hearings for multiple cases — used by advocate portal. */
     List<Hearing> findByCaseFileIdInAndIsDeletedFalseOrderByScheduledAtDesc(Collection<Long> caseFileIds);
+
+    long countByCaseFileId(Long caseFileId);
 }

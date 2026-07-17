@@ -21,4 +21,6 @@ public interface CourtRepository extends JpaRepository<Court, Long> {
     Page<Court> findByCourtTypeAndIsDeletedFalse(String courtType, Pageable pageable);
 
     boolean existsByCourtCode(String courtCode);
+
+    long countByIsActiveTrueAndIsDeletedFalse();
 }

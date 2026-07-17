@@ -200,7 +200,7 @@ if ($ADV_TOKEN) {
         -Body '{"barCouncilNumber":"MAH/MUM/2020/12345","specialization":"Criminal Law","yearsOfPractice":5,"stateBarCouncil":"Maharashtra Bar Council"}'
 
     # File a new case (include courtUuid so clerk court-ownership check passes)
-    $caseJson = '{"caseTitle":"Test Case Property Dispute","caseDescription":"Endpoint test case","caseType":"CIVIL","petitionerName":"John Doe","respondentName":"Jane Smith","filingDate":"2026-07-12","priority":"MEDIUM","courtUuid":"99990000-cccc-0000-0000-000000000001"}'
+    $caseJson = '{"caseTitle":"Test Case Property Dispute","caseDescription":"Endpoint test case","caseType":"CIVIL","petitionerName":"John Doe","respondentName":"Jane Smith","filingDate":"2026-07-12","priority":"MEDIUM","courtUuid":"8ef2323a-8273-457a-8d26-7446637e9731"}'
     $caseRes  = Invoke-Api "POST /advocate/cases (file case)" "POST" "$BASE_URL/advocate/cases" -Headers $aH -Body $caseJson -Expect @(201)
     try { $caseUuid = $caseRes.data.uuid } catch {}
     if ($caseUuid) { Write-Host "  Case UUID: $caseUuid" -ForegroundColor DarkGreen }

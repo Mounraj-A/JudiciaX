@@ -24,4 +24,6 @@ public interface AdvocateRepository extends JpaRepository<Advocate, Long> {
 
     /** Used for ownership verification via internal user ID. */
     Optional<Advocate> findByUserIdAndIsDeletedFalse(Long userId);
+
+    Optional<Advocate> findByUserUsernameAndIsDeletedFalse(String username);
 }

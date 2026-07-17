@@ -26,4 +26,11 @@ public interface NotificationService {
      * @return count of unread notifications
      */
     long getUnreadCount(String userUuid);
+
+    void distributeNotification(String recipientUuid, String templateCode, java.util.Map<String, Object> variables,
+                                String referenceUuid, String referenceType);
+
+    void markAllAsRead(String userUuid);
+
+    void deleteNotification(String uuid);
 }

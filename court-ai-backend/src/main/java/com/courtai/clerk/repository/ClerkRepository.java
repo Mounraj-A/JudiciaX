@@ -16,4 +16,8 @@ public interface ClerkRepository extends JpaRepository<Clerk, Long> {
     Optional<Clerk> findByUserUuidAndIsDeletedFalse(@Param("userUuid") String userUuid);
 
     boolean existsByEmployeeId(String employeeId);
+
+    Optional<Clerk> findByUuidAndIsDeletedFalse(String uuid);
+
+    Optional<Clerk> findByUserUsernameAndIsDeletedFalse(String username);
 }

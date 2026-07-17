@@ -1,0 +1,30 @@
+package com.courtai.common.enums;
+
+/**
+ * System business events that trigger notifications.
+ */
+public enum SystemNotificationEvent {
+    CASE_CREATED,
+    CASE_SUBMITTED,
+    CASE_RETURNED,
+    CASE_REGISTERED,
+    JUDGE_ASSIGNED,
+    CASE_TRANSFERRED,
+    HEARING_SCHEDULED,
+    HEARING_UPDATED,
+    HEARING_ADJOURNED,
+    JUDGMENT_RESERVED,
+    CASE_DISPOSED,
+    CASE_CLOSED,
+    DOCUMENT_UPLOADED,
+    DOCUMENT_VERIFIED,
+    DOCUMENT_REJECTED,
+    OCR_FAILED,
+    AI_ANALYSIS_COMPLETED,
+    ANNOUNCEMENT,
+    MAINTENANCE,
+    PASSWORD_CHANGED,
+    ACCOUNT_LOCKED,
+    ROLE_ASSIGNED,
+    ROLE_REMOVED
+}

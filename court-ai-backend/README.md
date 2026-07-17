@@ -22,7 +22,7 @@ The **Court AI Backend** is the server-side foundation for an intelligent judici
 
 | Category             | Technology                        | Version    |
 |----------------------|-----------------------------------|------------|
-| Language             | Java                              | 21 (LTS)   |
+| Language             | Java                              | 17 (LTS)   |
 | Framework            | Spring Boot                       | 3.3.2      |
 | Build Tool           | Apache Maven                      | 3.9+       |
 | Database             | PostgreSQL                        | 15+        |
@@ -147,7 +147,7 @@ Client → Any protected endpoint
 
 | Software       | Minimum Version | Download                                              |
 |----------------|-----------------|-------------------------------------------------------|
-| Java JDK       | 21 (LTS)        | [adoptium.net](https://adoptium.net)                  |
+| Java JDK       | 17 (LTS)        | [adoptium.net](https://adoptium.net)                  |
 | Apache Maven   | 3.9+            | [maven.apache.org](https://maven.apache.org)          |
 | PostgreSQL     | 15+             | [postgresql.org](https://www.postgresql.org)          |
 | Git            | 2.x+            | [git-scm.com](https://git-scm.com)                   |

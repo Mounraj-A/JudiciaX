@@ -21,4 +21,8 @@ public interface EvidenceRepository extends JpaRepository<Evidence, Long> {
     List<Evidence> findByCaseFileIdAndIsAdmittedTrueAndIsDeletedFalse(Long caseFileId);
 
     Optional<Evidence> findByUuidAndIsDeletedFalse(String uuid);
+
+    long countByCaseFileId(Long caseFileId);
+    
+    long countByCaseFileIdAndIsVerifiedTrue(Long caseFileId);
 }

@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 /**
  * MapStruct mapper for {@link Document} → {@link DocumentResponse}.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", implementationName = "AdvocateDocumentMapperImpl")
 public interface DocumentMapper {
 
     @Mapping(target = "uuid",             source = "uuid")

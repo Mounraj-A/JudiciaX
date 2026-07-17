@@ -18,4 +18,8 @@ public interface JudgeRepository extends JpaRepository<Judge, Long> {
     Optional<Judge> findByJudgeIdNumberAndIsDeletedFalse(String judgeIdNumber);
 
     boolean existsByJudgeIdNumber(String judgeIdNumber);
+
+    Optional<Judge> findByUuidAndIsDeletedFalse(String uuid);
+
+    Optional<Judge> findByUserUsernameAndIsDeletedFalse(String username);
 }

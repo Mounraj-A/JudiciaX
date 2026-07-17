@@ -7,5 +7,6 @@ public enum NotificationType {
     IN_APP,
     EMAIL,
     SMS,
-    PUSH
+    PUSH,
+    WEBHOOK
 }

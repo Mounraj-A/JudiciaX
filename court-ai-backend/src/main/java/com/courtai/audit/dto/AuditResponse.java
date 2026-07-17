@@ -1,0 +1,30 @@
+package com.courtai.audit.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AuditResponse {
+    private String uuid;
+    private String correlationId;
+    private String module;
+    private String action;
+    private String entityType;
+    private String entityUuid;
+    private String actorUuid;
+    private String actorRole;
+    private String actorName;
+    private LocalDateTime timestamp;
+    private String status;
+    private String ipAddress;
+    private String browser;
+    private String device;
+    private String remarks;
+}
