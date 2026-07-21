@@ -35,4 +35,7 @@ public interface AdminUserService {
 
     /** Admin soft-delete — sets status to SOFT_DELETED and marks isDeleted. */
     void deleteUser(String uuid, String adminUuid);
+
+    /** Create a new user from Admin panel */
+    UserResponse createUser(String email, String fullName, String phone, String password, com.courtai.common.enums.UserRole role, String adminUuid);
 }

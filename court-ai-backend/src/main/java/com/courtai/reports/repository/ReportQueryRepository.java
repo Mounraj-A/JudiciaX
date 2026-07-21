@@ -139,41 +139,41 @@ public interface ReportQueryRepository extends JpaRepository<CaseFile, Long> {
 
     // ── Age / Delay Aggregates ─────────────────────────────────────────────
 
-    @Query("""
-            SELECT AVG(DATEDIFF(CURRENT_DATE, c.filingDate))
-            FROM CaseFile c
-            WHERE c.isDeleted = false
-              AND c.filingDate IS NOT NULL
+    @Query(value = """
+            SELECT AVG(CURRENT_DATE - c.filing_date)
+            FROM cases c
+            WHERE c.is_deleted = false
+              AND c.filing_date IS NOT NULL
               AND c.status NOT IN ('DISPOSED', 'CLOSED', 'ARCHIVED')
-            """)
+            """, nativeQuery = true)
     Double avgAgeInDaysForPendingCases();
 
     /**
      * Returns [ageBucket (String), count (Long)].
      * Buckets: LT30, D30_90, D90_180, D180_365, GT365
      */
-    @Query("""
+    @Query(value = """
             SELECT
               CASE
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 30    THEN 'LT30'
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 90    THEN 'D30_90'
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 180   THEN 'D90_180'
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 365   THEN 'D180_365'
+                WHEN (CURRENT_DATE - c.filing_date) < 30    THEN 'LT30'
+                WHEN (CURRENT_DATE - c.filing_date) < 90    THEN 'D30_90'
+                WHEN (CURRENT_DATE - c.filing_date) < 180   THEN 'D90_180'
+                WHEN (CURRENT_DATE - c.filing_date) < 365   THEN 'D180_365'
                 ELSE 'GT365'
               END,
-              COUNT(c)
-            FROM CaseFile c
-            WHERE c.isDeleted = false
-              AND c.filingDate IS NOT NULL
+              COUNT(c.id)
+            FROM cases c
+            WHERE c.is_deleted = false
+              AND c.filing_date IS NOT NULL
             GROUP BY
               CASE
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 30    THEN 'LT30'
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 90    THEN 'D30_90'
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 180   THEN 'D90_180'
-                WHEN DATEDIFF(CURRENT_DATE, c.filingDate) < 365   THEN 'D180_365'
+                WHEN (CURRENT_DATE - c.filing_date) < 30    THEN 'LT30'
+                WHEN (CURRENT_DATE - c.filing_date) < 90    THEN 'D30_90'
+                WHEN (CURRENT_DATE - c.filing_date) < 180   THEN 'D90_180'
+                WHEN (CURRENT_DATE - c.filing_date) < 365   THEN 'D180_365'
                 ELSE 'GT365'
               END
-            """)
+            """, nativeQuery = true)
     List<Object[]> caseAgeDistribution();
 
     // ── Court-specific Aggregates ─────────────────────────────────────────

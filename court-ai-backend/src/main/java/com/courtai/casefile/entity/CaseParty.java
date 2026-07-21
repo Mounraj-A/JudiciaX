@@ -72,4 +72,56 @@ public class CaseParty extends BaseEntity {
     @Column(name = "is_primary", nullable = false)
     @Builder.Default
     private Boolean isPrimary = Boolean.FALSE;
+
+    // --- Extended Wizard Fields ---
+
+    @Column(name = "party_category", length = 50)
+    private String partyCategory; // e.g., INDIVIDUAL, ORGANIZATION
+
+    @Column(name = "gender", length = 20)
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private java.time.LocalDate dateOfBirth;
+
+    @Column(name = "aadhaar_number", length = 100)
+    private String aadhaarNumber;
+
+    @Column(name = "district", length = 100)
+    private String district;
+
+    @Column(name = "state", length = 100)
+    private String state;
+
+    @Column(name = "pin_code", length = 20)
+    private String pinCode;
+
+    @Column(name = "occupation", length = 100)
+    private String occupation;
+
+    @Column(name = "representative_name", length = 200)
+    private String representativeName;
+
+    // --- Added for 17-step wizard ---
+
+    @Column(name = "alias_name", length = 200)
+    private String aliasName;
+
+    @Column(name = "age")
+    private Integer age;
+
+    @Column(name = "pan_number", length = 50)
+    private String panNumber;
+
+    @Column(name = "passport_number", length = 50)
+    private String passportNumber;
+
+    @Column(name = "nationality", length = 100)
+    private String nationality;
+
+    @Column(name = "additional_address", columnDefinition = "TEXT")
+    private String additionalAddress;
+
+    @Column(name = "other_information", columnDefinition = "TEXT")
+    private String otherInformation;
 }

@@ -47,7 +47,7 @@ public class DuplicateDetectionServiceImpl implements DuplicateDetectionService 
 
         List<CaseFile> potentials = caseFileRepository.findPotentialDuplicates(
                 caseFile.getCourt().getId(),
-                caseFile.getCaseType(),
+                caseFile.getCaseType() != null ? caseFile.getCaseType().getTypeCode() : null,
                 petitioner.length() >= 3 ? petitioner.substring(0, Math.min(petitioner.length(), 10)) : petitioner,
                 respondent.length() >= 3 ? respondent.substring(0, Math.min(respondent.length(), 10)) : respondent,
                 caseUuid);

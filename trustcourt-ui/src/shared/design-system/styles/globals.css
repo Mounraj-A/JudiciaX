@@ -1,0 +1,197 @@
+/* TrustCourt Global Styles — CSS Custom Properties for all design tokens */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Root Theme Variables (Light) ─────────────────────────────────────────── */
+:root {
+  /* Judicial Color System */
+  --tc-color-primary-50:  #EFF3FB;
+  --tc-color-primary-100: #D9E3F5;
+  --tc-color-primary-600: #1E4FA0;
+  --tc-color-primary-700: #0F1D3A;
+  --tc-color-primary-900: #080F1C;
+
+  --tc-color-secondary-600: #1E3A8A;
+  --tc-color-accent-600:    #C2410C;
+  --tc-color-success:       #059669;
+  --tc-color-warning:       #D97706;
+  --tc-color-danger:        #B91C1C;
+  --tc-color-info:          #0369A1;
+
+  /* Surface System */
+  --tc-surface-0: #FFFFFF;
+  --tc-surface-1: #F8F9FA;
+  --tc-surface-2: #F1F3F5;
+  --tc-surface-3: #E9ECEF;
+
+  /* AI Module Colors */
+  --tc-ai-ocr:        #0891B2;
+  --tc-ai-nlp:        #7C3AED;
+  --tc-ai-feature:    #4338CA;
+  --tc-ai-jpi:        #EA580C;
+  --tc-ai-cts:        #0F766E;
+  --tc-ai-xai:        #6D28D9;
+  --tc-ai-decision:   #1D4ED8;
+  --tc-ai-governance: #475569;
+
+  /* Priority Colors */
+  --tc-priority-emergency: #B91C1C;
+  --tc-priority-critical:  #EA580C;
+  --tc-priority-high:      #D97706;
+  --tc-priority-medium:    #0369A1;
+  --tc-priority-low:       #059669;
+
+  /* Trust Colors */
+  --tc-trust-high:     #059669;
+  --tc-trust-moderate: #D97706;
+  --tc-trust-low:      #B91C1C;
+
+  /* Shadcn/Radix compatibility variables */
+  --background:       0 0% 100%;
+  --foreground:       222.2 84% 4.9%;
+  --card:             0 0% 100%;
+  --card-foreground:  222.2 84% 4.9%;
+  --popover:          0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary:          221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary:        210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted:            210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent:           210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive:      0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border:           214.3 31.8% 91.4%;
+  --input:            214.3 31.8% 91.4%;
+  --ring:             221.2 83.2% 53.3%;
+  --radius:           0.5rem;
+
+  /* Typography */
+  --tc-font-sans:    'Inter', system-ui, sans-serif;
+  --tc-font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing */
+  --tc-sidebar-width:     16rem;
+  --tc-topnav-height:     4rem;
+  --tc-page-gutter:       1.5rem;
+
+  /* Z-Index */
+  --tc-z-dropdown:  100;
+  --tc-z-overlay:   300;
+  --tc-z-modal:     400;
+  --tc-z-tooltip:   600;
+  --tc-z-toast:     700;
+
+  /* Focus Ring */
+  --tc-focus-ring-width:  2px;
+  --tc-focus-ring-offset: 2px;
+  --tc-focus-ring-color:  var(--tc-color-secondary-600);
+}
+
+/* ─── Dark Theme ────────────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --background:         222.2 84% 4.9%;
+  --foreground:         210 40% 98%;
+  --card:               222.2 84% 4.9%;
+  --card-foreground:    210 40% 98%;
+  --muted:              217.2 32.6% 17.5%;
+  --muted-foreground:   215 20.2% 65.1%;
+  --border:             217.2 32.6% 17.5%;
+  --input:              217.2 32.6% 17.5%;
+  --tc-surface-0: #0F1117;
+  --tc-surface-1: #1A1D27;
+  --tc-surface-2: #1E2132;
+  --tc-surface-3: #252840;
+}
+
+/* ─── High Contrast Theme ───────────────────────────────────────────────────── */
+[data-theme='high-contrast'] {
+  --tc-color-primary-700: #000000;
+  --tc-color-secondary-600: #0000AA;
+  --tc-surface-0: #FFFFFF;
+  --tc-surface-1: #F0F0F0;
+  --border: 0 0% 0%;
+}
+
+/* ─── Court Theme ───────────────────────────────────────────────────────────── */
+[data-theme='court'] {
+  --tc-color-primary-700: #1A2744;
+  --tc-color-accent-600:  #8B2000;
+  --tc-surface-1: #F5F3EE;
+}
+
+/* ─── Base Styles ───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+  font-family: var(--tc-font-sans);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Focus Management (Accessibility) ─────────────────────────────────────── */
+:focus-visible {
+  outline: var(--tc-focus-ring-width) solid var(--tc-focus-ring-color);
+  outline-offset: var(--tc-focus-ring-offset);
+  border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────────────  */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Utility Classes ───────────────────────────────────────────────────────── */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+
+  .grid-base { display: grid; grid-template-columns: var(--tc-sidebar-width) 1fr; }
+}
+
+/* ─── Print Styles ──────────────────────────────────────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}

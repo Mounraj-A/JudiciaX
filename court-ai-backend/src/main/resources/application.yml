@@ -64,8 +64,9 @@ spring:
     baseline-version: 0
     locations: classpath:db/migration
     schemas: public
-    validate-on-migrate: true
+    validate-on-migrate: false
     out-of-order: false
+    ignore-missing-migrations: true
     encoding: UTF-8
 
   # =============================================
@@ -186,17 +187,8 @@ app:
     enabled: true
 
   cors:
-    allowed-origins:
-      - "http://localhost:3000"
-      - "http://localhost:4200"
-      - "http://localhost:5173"
-    allowed-methods:
-      - GET
-      - POST
-      - PUT
-      - PATCH
-      - DELETE
-      - OPTIONS
+    allowed-origins: "http://localhost:3000,http://localhost:3001,http://localhost:4200,http://localhost:5173"
+    allowed-methods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     allowed-headers: "*"
     allow-credentials: true
     max-age: 3600
@@ -218,3 +210,79 @@ app:
       - video/mp4
       - audio/mpeg
       - audio/wav
+
+# =============================================
+# AI GATEWAY PHASE 1
+# =============================================
+ai:
+  enabled: true
+  api-version: "v1.0"
+  secret-key: "internal-ai-secret"
+  connect-timeout: 5000
+  read-timeout: 30000
+  request-timeout: 35000
+  max-retry: 3
+  retry-delay: 2000
+  health-endpoint: "/health"
+  features:
+    ocr-enabled: false
+    nlp-enabled: false
+    priority-engine-enabled: false
+    cts-enabled: false
+    explainability-enabled: false
+    recommendation-enabled: false
+    simulation-mode: false
+    maintenance-mode: false
+    read-only-mode: false
+  registry:
+    services:
+      ocr:
+        name: "OCR Engine"
+        version: "v4"
+        endpoint: "http://localhost:8001/api/ocr"
+        enabled: false
+        timeout: 60000
+        status: "ONLINE"
+      priority:
+        name: "Judicial Priority Engine"
+        version: "v3"
+        endpoint: "http://localhost:8002/api/priority"
+        enabled: false
+        timeout: 30000
+        status: "ONLINE"
+
+# =============================================
+# RESILIENCE4J CONFIGURATION
+# =============================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      aiGateway:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+  retry:
+    instances:
+      aiGateway:
+        maxAttempts: 3
+        waitDuration: 2s
+  ratelimiter:
+    instances:
+      aiGateway:
+        limitForPeriod: 50
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+  bulkhead:
+    instances:
+      aiGateway:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 1s
+  timelimiter:
+    instances:
+      aiGateway:
+        timeoutDuration: 35s
+        cancelRunningFuture: true

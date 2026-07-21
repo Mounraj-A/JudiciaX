@@ -1,0 +1,11 @@
+version: "1.0.0"
+weights:
+  - weight_id: "T_WEIGHT_01"
+    factor_name: "document_completeness"
+    base_weight: 40.0
+    multiplier: 1.0
+    
+  - weight_id: "T_WEIGHT_02"
+    factor_name: "evidence_verification"
+    base_weight: 60.0
+    multiplier: 1.0

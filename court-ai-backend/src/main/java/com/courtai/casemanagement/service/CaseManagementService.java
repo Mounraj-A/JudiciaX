@@ -12,6 +12,9 @@ import org.springframework.data.domain.Pageable;
  */
 public interface CaseManagementService {
 
+    /** Create or update a case draft incrementally from the Wizard. */
+    CaseWizardDraftResponse upsertDraft(CaseWizardDraftRequest request, String actorUuid, String actorRole);
+
     /** Create a new case in DRAFT status. */
     CaseDetailsResponse createCase(CaseCreateRequest request, String actorUuid, String actorRole);
 

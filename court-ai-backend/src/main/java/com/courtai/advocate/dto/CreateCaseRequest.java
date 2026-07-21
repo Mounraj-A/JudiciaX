@@ -1,7 +1,7 @@
 package com.courtai.advocate.dto;
 
 import com.courtai.common.enums.CasePriority;
-import com.courtai.common.enums.CaseType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,7 +26,7 @@ public class CreateCaseRequest {
     private String caseDescription;
 
     @NotNull(message = "Case type is required")
-    private CaseType caseType;
+    private String caseType;
 
     @NotBlank(message = "Petitioner name is required")
     @Size(max = 200)
@@ -54,4 +54,25 @@ public class CreateCaseRequest {
     private String actSection;
 
     private CasePriority priority;
+
+    // --- Added for 17-step Wizard Flow (Steps 1 & 2) ---
+
+    // Step 1: Where to File
+    private String state;
+    private String district;
+    private String courtEstablishment;
+    private String bench;
+    private String courtHall;
+    private String caseNature; // Civil / Criminal
+    private String filingMode; // e.g. Fresh
+    private String signingMethod; // Aadhaar eSign / DSC
+    private String language;
+
+    // Step 2: Case Information (some overlap with existing fields)
+    private String causeTitle;
+    private String subject;
+    private String natureOfSuit;
+    private String reliefSought;
+    private String causeOfAction;
+    private LocalDate dateOfCauseAction;
 }

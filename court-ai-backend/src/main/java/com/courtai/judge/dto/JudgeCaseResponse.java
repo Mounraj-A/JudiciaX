@@ -2,7 +2,7 @@ package com.courtai.judge.dto;
 
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -27,7 +27,7 @@ public class JudgeCaseResponse {
     // ── Case Description ──────────────────────────────────────────────────
     private String caseTitle;
     private String caseDescription;
-    private CaseType caseType;
+    private String caseType;
     private CaseStatus status;
     private CasePriority priority;
     private Double priorityScore;

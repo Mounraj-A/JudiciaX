@@ -1,0 +1,9 @@
+ALTER TABLE case_legal_info
+ADD COLUMN created_by VARCHAR(255),
+ADD COLUMN updated_by VARCHAR(255),
+ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE case_payments
+ADD COLUMN created_by VARCHAR(255),
+ADD COLUMN updated_by VARCHAR(255),
+ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT false;

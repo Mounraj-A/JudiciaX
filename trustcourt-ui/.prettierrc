@@ -1,0 +1,22 @@
+{
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "importOrder": [
+    "^react",
+    "^react-dom",
+    "<THIRD_PARTY_MODULES>",
+    "^@/core/(.*)$",
+    "^@/shared/(.*)$",
+    "^@/features/(.*)$",
+    "^@/api/(.*)$",
+    "^@/store/(.*)$",
+    "^[./]"
+  ]
+}

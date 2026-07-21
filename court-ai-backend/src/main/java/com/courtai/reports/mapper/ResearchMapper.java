@@ -64,7 +64,7 @@ public abstract class ResearchMapper {
         ResearchDatasetRow.ResearchDatasetRowBuilder builder = ResearchDatasetRow.builder()
                 .caseUuid(caseFile.getUuid())
                 .caseNumber(caseFile.getCaseNumber())
-                .caseType(caseFile.getCaseType() != null ? caseFile.getCaseType().name() : null)
+                .caseType(caseFile.getCaseType() != null ? caseFile.getCaseType().getTypeCode() : null)
                 .categoryName(caseFile.getCaseCategory() != null ? caseFile.getCaseCategory().getCategoryName() : null)
                 .status(caseFile.getStatus() != null ? caseFile.getStatus().name() : null)
                 .priority(caseFile.getPriority() != null ? caseFile.getPriority().name() : null)

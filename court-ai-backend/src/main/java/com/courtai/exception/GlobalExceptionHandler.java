@@ -53,6 +53,17 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(400, ErrorCode.VAL_001.getMessage(), errors));
     }
 
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(
+            jakarta.validation.ConstraintViolationException ex, HttpServletRequest request) {
+        List<String> errors = ex.getConstraintViolations().stream()
+                .map(jakarta.validation.ConstraintViolation::getMessage)
+                .sorted().collect(Collectors.toList());
+        log.warn("Constraint validation failed [{}] {}: {}", request.getMethod(), request.getRequestURI(), errors);
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, ErrorCode.VAL_001.getMessage(), errors));
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleMalformedJson(
             HttpMessageNotReadableException ex, HttpServletRequest request) {

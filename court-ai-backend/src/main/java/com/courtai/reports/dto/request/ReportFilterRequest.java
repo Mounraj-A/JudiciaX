@@ -2,7 +2,7 @@ package com.courtai.reports.dto.request;
 
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -58,7 +58,7 @@ public class ReportFilterRequest {
     // ── Case Filters ──────────────────────────────────────────────────────
 
     /** Filter by case type. */
-    private CaseType caseType;
+    private String caseType;
 
     /** Filter by case status. */
     private CaseStatus caseStatus;

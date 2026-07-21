@@ -31,4 +31,19 @@ public interface AdvocateCaseService {
 
     /** Keyword search across title and party names. */
     Page<CaseSummaryResponse> searchCases(String keyword, Pageable pageable);
+
+    /** Get case statistics for the dashboard. */
+    com.courtai.advocate.dto.AdvocateCaseStatisticsResponse getCaseStatistics();
+
+    /** Add a party to a case */
+    void addCaseParty(String caseUuid, com.courtai.advocate.dto.PartyRequest request);
+
+    /** Save legal information */
+    void saveLegalInfo(String caseUuid, com.courtai.advocate.dto.LegalInfoRequest request);
+
+    /** Submit a draft case */
+    CaseResponse submitCase(String caseUuid);
+
+    /** Get the timeline events for a case */
+    java.util.List<com.courtai.advocate.dto.CaseTimelineResponse> getTimeline(String caseUuid);
 }

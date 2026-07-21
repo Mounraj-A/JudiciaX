@@ -2,7 +2,7 @@ package com.courtai.casefile.repository;
 
 import com.courtai.casefile.entity.CaseFile;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,7 +31,7 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
 
     Page<CaseFile> findByStatusAndIsDeletedFalse(CaseStatus status, Pageable pageable);
 
-    Page<CaseFile> findByCaseTypeAndIsDeletedFalse(CaseType caseType, Pageable pageable);
+    Page<CaseFile> findByCaseTypeAndIsDeletedFalse(String caseType, Pageable pageable);
 
     @Query("SELECT c FROM CaseFile c WHERE c.assignedJudge.uuid = :judgeUuid AND c.isDeleted = false")
     Page<CaseFile> findByAssignedJudgeUuidAndIsDeletedFalse(@Param("judgeUuid") String judgeUuid, Pageable pageable);
@@ -41,8 +41,9 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
     /** Returns all cases where the advocate is petitioner OR respondent. */
     @Query("""
             SELECT c FROM CaseFile c
-            WHERE (c.petitionerAdvocate.uuid = :advocateUuid
-               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
+            LEFT JOIN c.petitionerAdvocate pa
+            LEFT JOIN c.respondentAdvocate ra
+            WHERE (pa.uuid = :advocateUuid OR ra.uuid = :advocateUuid)
               AND c.isDeleted = false
             """)
     Page<CaseFile> findByAdvocateUuid(@Param("advocateUuid") String advocateUuid, Pageable pageable);
@@ -50,8 +51,9 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
     /** Cases for advocate filtered by status. */
     @Query("""
             SELECT c FROM CaseFile c
-            WHERE (c.petitionerAdvocate.uuid = :advocateUuid
-               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
+            LEFT JOIN c.petitionerAdvocate pa
+            LEFT JOIN c.respondentAdvocate ra
+            WHERE (pa.uuid = :advocateUuid OR ra.uuid = :advocateUuid)
               AND c.status = :status
               AND c.isDeleted = false
             """)
@@ -60,11 +62,33 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
             @Param("status") CaseStatus status,
             Pageable pageable);
 
+    @Query("""
+            SELECT COUNT(c) FROM CaseFile c
+            LEFT JOIN c.petitionerAdvocate pa
+            LEFT JOIN c.respondentAdvocate ra
+            WHERE (pa.uuid = :advocateUuid OR ra.uuid = :advocateUuid)
+              AND c.status IN :statuses
+              AND c.isDeleted = false
+            """)
+    long countByAdvocateUuidAndStatusIn(
+            @Param("advocateUuid") String advocateUuid,
+            @Param("statuses") Collection<CaseStatus> statuses);
+
+    @Query("""
+            SELECT COUNT(c) FROM CaseFile c
+            LEFT JOIN c.petitionerAdvocate pa
+            LEFT JOIN c.respondentAdvocate ra
+            WHERE (pa.uuid = :advocateUuid OR ra.uuid = :advocateUuid)
+              AND c.isDeleted = false
+            """)
+    long countByAdvocateUuid(@Param("advocateUuid") String advocateUuid);
+
     /** Keyword search across title and party names for a given advocate. */
     @Query("""
             SELECT c FROM CaseFile c
-            WHERE (c.petitionerAdvocate.uuid = :advocateUuid
-               OR (c.respondentAdvocate IS NOT NULL AND c.respondentAdvocate.uuid = :advocateUuid))
+            LEFT JOIN c.petitionerAdvocate pa
+            LEFT JOIN c.respondentAdvocate ra
+            WHERE (pa.uuid = :advocateUuid OR ra.uuid = :advocateUuid)
               AND c.isDeleted = false
               AND (LOWER(c.caseTitle)       LIKE LOWER(CONCAT('%', :keyword, '%'))
                 OR LOWER(c.petitionerName) LIKE LOWER(CONCAT('%', :keyword, '%'))
@@ -139,7 +163,7 @@ public interface CaseFileRepository extends JpaRepository<CaseFile, Long>,
             """)
     List<CaseFile> findPotentialDuplicates(
             @Param("courtId") Long courtId,
-            @Param("caseType") com.courtai.common.enums.CaseType caseType,
+            @Param("caseType") String caseType,
             @Param("petitioner") String petitioner,
             @Param("respondent") String respondent,
             @Param("excludeUuid") String excludeUuid);

@@ -3,8 +3,11 @@ package com.courtai.casemanagement.service.impl;
 import com.courtai.audit.service.AuditService;
 import com.courtai.casefile.entity.CaseFile;
 import com.courtai.casefile.entity.CaseFlag;
-import com.courtai.casefile.repository.CaseFileRepository;
-import com.courtai.casefile.repository.CaseFlagRepository;
+import com.courtai.casefile.entity.CaseLegalInfo;
+import com.courtai.casefile.entity.CaseParty;
+import com.courtai.casefile.entity.SubordinateCourtDetail;
+import com.courtai.casefile.entity.ActSectionDetail;
+import com.courtai.casefile.repository.*;
 import com.courtai.casemanagement.dto.*;
 import com.courtai.casemanagement.mapper.CaseMapper;
 import com.courtai.casemanagement.service.CaseManagementService;
@@ -13,7 +16,10 @@ import com.courtai.casemanagement.service.CaseWorkflowService;
 import com.courtai.casecategory.repository.CaseCategoryRepository;
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+import com.courtai.common.enums.PartyType;
+
+import com.courtai.master.entity.CaseType;
+import com.courtai.master.repository.CaseTypeRepository;
 import com.courtai.court.repository.CourtRepository;
 import com.courtai.exception.BusinessRuleViolationException;
 import com.courtai.exception.ResourceNotFoundException;
@@ -40,8 +46,13 @@ public class CaseManagementServiceImpl implements CaseManagementService {
 
     private final CaseFileRepository     caseFileRepository;
     private final CaseFlagRepository     caseFlagRepository;
+    private final CasePartyRepository    casePartyRepository;
+    private final CaseLegalInfoRepository caseLegalInfoRepository;
+    private final SubordinateCourtDetailRepository subordinateCourtDetailRepository;
+    private final ActSectionDetailRepository actSectionDetailRepository;
     private final CourtRepository        courtRepository;
     private final CaseCategoryRepository caseCategoryRepository;
+    private final CaseTypeRepository     caseTypeRepository;
     private final CaseWorkflowService    workflowService;
     private final CaseTimelineService    timelineService;
     private final CaseMapper             caseMapper;
@@ -53,11 +64,17 @@ public class CaseManagementServiceImpl implements CaseManagementService {
     @Override
     @Transactional
     public CaseDetailsResponse createCase(CaseCreateRequest req, String actorUuid, String actorRole) {
+        CaseType resolvedCaseType = null;
+        if (req.getCaseType() != null && !req.getCaseType().isBlank()) {
+            resolvedCaseType = caseTypeRepository.findByTypeCodeAndIsDeletedFalse(req.getCaseType())
+                .orElseThrow(() -> new ResourceNotFoundException("CaseType", "typeCode", req.getCaseType()));
+        }
+
         CaseFile caseFile = CaseFile.builder()
                 .caseNumber(generateCaseNumber())
                 .caseTitle(req.getCaseTitle())
                 .caseDescription(req.getCaseDescription())
-                .caseType(req.getCaseType() != null ? req.getCaseType() : CaseType.OTHER)
+                .caseType(resolvedCaseType)
                 .petitionerName(req.getPetitionerName())
                 .respondentName(req.getRespondentName())
                 .filingDate(req.getFilingDate() != null ? req.getFilingDate() : LocalDate.now())
@@ -104,6 +121,190 @@ public class CaseManagementServiceImpl implements CaseManagementService {
 
         log.info("[CASE] Case {} created in DRAFT by {}", caseFile.getCaseNumber(), actorUuid);
         return caseMapper.toDetails(caseFile, flags);
+    }
+
+    @Override
+    @Transactional
+    public CaseWizardDraftResponse upsertDraft(CaseWizardDraftRequest req, String actorUuid, String actorRole) {
+        CaseFile caseFile;
+        boolean isNew = false;
+        
+        if (req.getCaseUuid() != null && !req.getCaseUuid().isBlank()) {
+            caseFile = caseFileRepository.findByUuidAndIsDeletedFalse(req.getCaseUuid())
+                    .orElseThrow(() -> new ResourceNotFoundException("CaseFile", "uuid", req.getCaseUuid()));
+        } else {
+            caseFile = new CaseFile();
+            caseFile.setCaseNumber(generateCaseNumber());
+            caseFile.setStatus(CaseStatus.DRAFT);
+            caseFile.setPriority(CasePriority.LOW);
+            caseFile.setFilingYear(LocalDate.now().getYear());
+            caseFile.setFilingDate(LocalDate.now());
+            
+            // Set dummy caseType for DB constraint, will be updated later if provided
+            CaseType defaultType = caseTypeRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException("No case types found"));
+            caseFile.setCaseType(defaultType);
+            caseFile.setCaseTitle("Draft Case");
+            isNew = true;
+        }
+
+        // -- Step 1 --
+        if (req.getState() != null) caseFile.setState(req.getState());
+        if (req.getDistrict() != null) caseFile.setDistrict(req.getDistrict());
+        if (req.getCourt() != null) caseFile.setCourtEstablishment(req.getCourt());
+        if (req.getCourtType() != null) caseFile.setCourtType(req.getCourtType());
+        if (req.getBench() != null) caseFile.setBench(req.getBench());
+        if (req.getCourtHall() != null) caseFile.setCourtHall(req.getCourtHall());
+        if (req.getCaseNature() != null) caseFile.setCaseNature(req.getCaseNature());
+        if (req.getFilingMode() != null) caseFile.setFilingMode(req.getFilingMode());
+        if (req.getCaseType() != null) {
+            caseTypeRepository.findByTypeCodeAndIsDeletedFalse(req.getCaseType())
+                    .ifPresent(caseFile::setCaseType);
+        }
+
+        // -- Step 2 --
+        if (req.getCaseTitle() != null) caseFile.setCaseTitle(req.getCaseTitle());
+        if (req.getCauseTitle() != null) caseFile.setCauseTitle(req.getCauseTitle());
+        if (req.getSubject() != null) caseFile.setSubject(req.getSubject());
+        if (req.getNatureOfSuit() != null) caseFile.setNatureOfSuit(req.getNatureOfSuit());
+        if (req.getShortDescription() != null) caseFile.setCaseDescription(req.getShortDescription());
+        if (req.getDetailedDescription() != null) caseFile.setDetailedDescription(req.getDetailedDescription());
+        if (req.getCauseOfAction() != null) caseFile.setCauseOfAction(req.getCauseOfAction());
+        if (req.getDateOfCauseOfAction() != null) caseFile.setDateOfCauseAction(req.getDateOfCauseOfAction());
+        if (req.getReliefSought() != null) caseFile.setReliefSought(req.getReliefSought());
+        if (req.getCaseCategoryUuid() != null) caseFile.setCaseCategoryUuid(req.getCaseCategoryUuid());
+
+        caseFile = caseFileRepository.save(caseFile);
+
+        if (isNew) {
+            CaseFlag flags = new CaseFlag();
+            flags.setCaseFile(caseFile);
+            caseFlagRepository.save(flags);
+        }
+
+        // -- Step 3, 4, 9 Parties --
+        if (req.getPetitioner() != null) saveParty(caseFile, PartyType.PETITIONER, req.getPetitioner(), true);
+        if (req.getRespondent() != null) saveParty(caseFile, PartyType.RESPONDENT, req.getRespondent(), true);
+        
+        if (req.getAdditionalParties() != null) {
+            // Remove old additional parties to avoid dupes (simplified sync)
+            casePartyRepository.findByCaseFileIdAndIsDeletedFalse(caseFile.getId()).stream()
+                .filter(p -> !p.getIsPrimary())
+                .forEach(casePartyRepository::delete);
+            
+            for (CaseWizardDraftRequest.PartyDto dto : req.getAdditionalParties()) {
+                PartyType pt = PartyType.OTHER;
+                if (dto.getPartyType() != null) {
+                    try {
+                        String normalized = dto.getPartyType().toUpperCase()
+                                .replace(" ", "_")
+                                .replace("-", "_")
+                                .replace("POWER_OF_ATTORNEY_(POA)_HOLDER", "POA_HOLDER");
+                        pt = PartyType.valueOf(normalized);
+                    } catch (IllegalArgumentException e) {
+                        pt = PartyType.OTHER;
+                    }
+                }
+                saveParty(caseFile, pt, dto, false);
+            }
+        }
+
+        final CaseFile finalCaseFile = caseFile;
+
+        // -- Step 5 Legal Info --
+        if (req.getPoliceStation() != null || req.getFirNumber() != null) {
+            CaseLegalInfo legalInfo = caseLegalInfoRepository.findByCaseFileId(caseFile.getId())
+                    .orElseGet(() -> {
+                        CaseLegalInfo info = new CaseLegalInfo();
+                        info.setCaseFile(finalCaseFile);
+                        return info;
+                    });
+            if (req.getPoliceStation() != null) legalInfo.setPoliceStation(req.getPoliceStation());
+            if (req.getFirNumber() != null) legalInfo.setFirNumber(req.getFirNumber());
+            caseLegalInfoRepository.save(legalInfo);
+        }
+
+        // -- Step 7 Subordinate Court --
+        if (req.getSubordinateCourt() != null || req.getCaseNumber() != null) {
+            // Simplified: we just update the first one or create one
+            SubordinateCourtDetail scd = subordinateCourtDetailRepository.findByCaseFileId(caseFile.getId())
+                    .stream().findFirst().orElseGet(() -> {
+                        SubordinateCourtDetail d = new SubordinateCourtDetail();
+                        d.setCaseFile(finalCaseFile);
+                        return d;
+                    });
+            if (req.getSubordinateCourt() != null) scd.setSubordinateCourt(req.getSubordinateCourt());
+            if (req.getJudgeName() != null) scd.setJudgeName(req.getJudgeName());
+            if (req.getCaseNumber() != null) scd.setCaseNumber(req.getCaseNumber());
+            if (req.getYear() != null) scd.setYear(req.getYear());
+            if (req.getCnrNumber() != null) scd.setCnrNumber(req.getCnrNumber());
+            if (req.getJudgmentDate() != null) scd.setJudgmentDate(req.getJudgmentDate());
+            subordinateCourtDetailRepository.save(scd);
+        }
+
+        // -- Step 8 Acts --
+        if (req.getCaseActs() != null && !req.getCaseActs().isEmpty()) {
+            actSectionDetailRepository.deleteAll(actSectionDetailRepository.findByCaseFileId(caseFile.getId()));
+            for (CaseWizardDraftRequest.ActSectionDto dto : req.getCaseActs()) {
+                ActSectionDetail act = new ActSectionDetail();
+                act.setCaseFile(caseFile);
+                act.setActName(dto.getAct());
+                act.setSection(dto.getSection());
+                act.setArticle(dto.getArticle());
+                actSectionDetailRepository.save(act);
+            }
+        }
+
+        return CaseWizardDraftResponse.builder()
+                .caseUuid(caseFile.getUuid())
+                .status("DRAFT")
+                .message("Draft saved successfully")
+                .build();
+    }
+
+    private void saveParty(CaseFile caseFile, PartyType type, CaseWizardDraftRequest.PartyDto dto, boolean isPrimary) {
+        CaseParty party;
+        if (isPrimary) {
+            party = casePartyRepository.findByCaseFileIdAndIsDeletedFalse(caseFile.getId()).stream()
+                    .filter(p -> p.getPartyType() == type && p.getIsPrimary())
+                    .findFirst().orElseGet(() -> {
+                        CaseParty p = new CaseParty();
+                        p.setCaseFile(caseFile);
+                        p.setPartyType(type);
+                        p.setIsPrimary(true);
+                        p.setPartyName(dto.getName() != null ? dto.getName() : "Unknown");
+                        return p;
+                    });
+        } else {
+            party = new CaseParty();
+            party.setCaseFile(caseFile);
+            party.setPartyType(type);
+            party.setIsPrimary(false);
+            party.setPartyName(dto.getName() != null ? dto.getName() : "Unknown");
+        }
+
+        if (dto.getName() != null) party.setPartyName(dto.getName());
+        if (dto.getAlias() != null) party.setAliasName(dto.getAlias());
+        if (dto.getGender() != null) party.setGender(dto.getGender());
+        if (dto.getDob() != null) party.setDateOfBirth(dto.getDob());
+        if (dto.getAge() != null) party.setAge(dto.getAge());
+        if (dto.getOccupation() != null) party.setOccupation(dto.getOccupation());
+        if (dto.getAadhaar() != null) party.setAadhaarNumber(dto.getAadhaar());
+        if (dto.getPan() != null) party.setPanNumber(dto.getPan());
+        if (dto.getMobile() != null) party.setPhoneNumber(dto.getMobile());
+        if (dto.getEmail() != null) party.setEmail(dto.getEmail());
+        if (dto.getAddress() != null) party.setPartyAddress(dto.getAddress());
+        if (dto.getState() != null) party.setState(dto.getState());
+        if (dto.getDistrict() != null) party.setDistrict(dto.getDistrict());
+        if (dto.getPincode() != null) party.setPinCode(dto.getPincode());
+        if (dto.getPartyCategory() != null) party.setPartyCategory(dto.getPartyCategory());
+        if (dto.getRepresentativeName() != null) party.setRepresentativeName(dto.getRepresentativeName());
+        if (dto.getPassportNumber() != null) party.setPassportNumber(dto.getPassportNumber());
+        if (dto.getNationality() != null) party.setNationality(dto.getNationality());
+        if (dto.getAdditionalAddress() != null) party.setAdditionalAddress(dto.getAdditionalAddress());
+        if (dto.getOtherInformation() != null) party.setOtherInformation(dto.getOtherInformation());
+
+        casePartyRepository.save(party);
     }
 
     // ── Update ────────────────────────────────────────────────────────────────

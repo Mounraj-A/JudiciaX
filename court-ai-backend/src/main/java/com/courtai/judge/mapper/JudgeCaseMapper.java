@@ -5,6 +5,7 @@ import com.courtai.judge.dto.JudgeCaseResponse;
 import com.courtai.judge.dto.JudgeCaseSummaryResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import com.courtai.master.entity.CaseType;
 
 /**
  * MapStruct mapper for converting CaseFile → judge case DTOs.
@@ -52,4 +53,8 @@ public interface JudgeCaseMapper {
     @Mapping(target = "createdAt",           source = "createdAt")
     @Mapping(target = "updatedAt",           source = "updatedAt")
     JudgeCaseResponse toDetail(CaseFile caseFile);
+
+    default String mapCaseType(CaseType caseType) {
+        return caseType != null ? caseType.getTypeCode() : null;
+    }
 }

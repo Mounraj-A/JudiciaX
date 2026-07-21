@@ -22,4 +22,8 @@ public interface CaseTimelineRepository extends JpaRepository<CaseTimeline, Long
            "AND t.eventType = :eventType AND t.isDeleted = false ORDER BY t.eventTime DESC")
     List<CaseTimeline> findByCaseUuidAndEventType(@Param("caseUuid") String caseUuid,
                                                    @Param("eventType") String eventType);
+
+    @Query("SELECT t FROM CaseTimeline t WHERE t.caseFile.uuid = :caseUuid " +
+           "AND t.isDeleted = false ORDER BY t.eventTime DESC")
+    List<CaseTimeline> findByCaseUuidOrderByEventTimeDesc(@Param("caseUuid") String caseUuid);
 }

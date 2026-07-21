@@ -22,4 +22,12 @@ public class UserResponse {
     private final UserRole role;
     private final Boolean isActive;
     private final Boolean isEmailVerified;
+    private final String fullName;
+    private final Boolean isDeleted;
+    private final Boolean isLocked;
+    private final String accountStatus;
+    private final java.time.LocalDateTime createdAt;
+    private final java.time.LocalDateTime updatedAt;
+    private final Integer profileCompletionPercent;
+    private final Integer failedLoginAttempts;
 }

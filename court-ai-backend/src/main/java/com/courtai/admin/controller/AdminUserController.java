@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(ApiConstants.API_ADMIN_BASE)
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
 @Tag(name = "Admin — User Management", description = "Admin operations for user approval, lock, role management")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminUserController {
@@ -145,4 +145,27 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.success(ApiConstants.MSG_USER_DELETED));
     }
 
+    // =========================================================
+    //  CREATE USER
+    // =========================================================
+
+    @PostMapping("/users")
+    @Operation(summary = "Create a new user from Admin panel")
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @RequestBody java.util.Map<String, String> requestData,
+            @AuthenticationPrincipal UserPrincipal admin) {
+        
+        String email = requestData.get("email");
+        String fullName = requestData.get("fullName");
+        String phone = requestData.get("phone");
+        String password = requestData.get("password");
+        String roleStr = requestData.get("role");
+        if (roleStr != null && !roleStr.startsWith("ROLE_")) {
+            roleStr = "ROLE_" + roleStr;
+        }
+        UserRole role = UserRole.valueOf(roleStr);
+        
+        UserResponse response = adminUserService.createUser(email, fullName, phone, password, role, admin.getUserUuid());
+        return ResponseEntity.ok(ApiResponse.success("User created successfully", response));
+    }
 }

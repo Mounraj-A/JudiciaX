@@ -18,4 +18,6 @@ public interface CaseCategoryRepository extends JpaRepository<CaseCategory, Long
     List<CaseCategory> findByIsActiveTrueAndIsDeletedFalseOrderByDisplayOrderAsc();
 
     boolean existsByCategoryCode(String categoryCode);
+
+    List<CaseCategory> findByCaseTypeUuidAndIsActiveTrueAndIsDeletedFalseOrderByDisplayOrderAsc(String caseTypeUuid);
 }

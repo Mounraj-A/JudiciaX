@@ -1,0 +1,17 @@
+package com.courtai.ai.ocr.model;
+
+public enum OCRDocumentType {
+    DIGITAL_PDF,
+    SCANNED_PDF,
+    IMAGE,
+    HANDWRITTEN_IMAGE,
+    IDENTITY_DOCUMENT,
+    MEDICAL_REPORT,
+    COURT_ORDER,
+    JUDGMENT,
+    EVIDENCE,
+    MIXED_LANGUAGE_DOCUMENT,
+    FUTURE_AUDIO,
+    FUTURE_VIDEO,
+    UNKNOWN
+}

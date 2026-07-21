@@ -16,6 +16,12 @@ public interface JudgeOrderRepository extends JpaRepository<JudgeOrder, Long> {
     /** All non-deleted orders for a given case (by DB id). */
     List<JudgeOrder> findByCaseFileIdAndIsDeletedFalseOrderByOrderDateDesc(Long caseFileId);
 
+    /** Paginated non-deleted orders for a given case (by UUID). */
+    org.springframework.data.domain.Page<JudgeOrder> findByCaseFileUuidAndIsDeletedFalseOrderByOrderDateDesc(String uuid, org.springframework.data.domain.Pageable pageable);
+
+    /** Paginated non-deleted orders for a given case (by UUID) filtered by order types. */
+    org.springframework.data.domain.Page<JudgeOrder> findByCaseFileUuidAndOrderTypeInAndIsDeletedFalseOrderByOrderDateDesc(String uuid, java.util.Collection<String> orderTypes, org.springframework.data.domain.Pageable pageable);
+
     /** All non-deleted orders for a case filtered by order type. */
     List<JudgeOrder> findByCaseFileIdAndOrderTypeAndIsDeletedFalse(Long caseFileId, String orderType);
 

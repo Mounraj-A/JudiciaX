@@ -17,7 +17,7 @@ import java.util.List;
  * Implementation of AuditAnalyticsService.
  */
 @Slf4j
-@Service
+@Service("reportsAuditAnalyticsServiceImpl")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuditAnalyticsServiceImpl implements AuditAnalyticsService {

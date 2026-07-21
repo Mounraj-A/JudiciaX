@@ -2,7 +2,7 @@ package com.courtai.casemanagement.dto;
 
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,7 +38,7 @@ public class CaseSearchRequest {
     private String state;
 
     // ── Classification ────────────────────────────────────────────────────────
-    private CaseType caseType;
+    private String caseType;
     private String categoryUuid;
     private CasePriority priority;
     private CaseStatus status;

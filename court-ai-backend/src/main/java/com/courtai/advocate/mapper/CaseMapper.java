@@ -5,6 +5,7 @@ import com.courtai.advocate.dto.CaseSummaryResponse;
 import com.courtai.casefile.entity.CaseFile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import com.courtai.master.entity.CaseType;
 
 /**
  * MapStruct mapper for {@link CaseFile} → advocate case DTOs.
@@ -50,4 +51,8 @@ public interface CaseMapper {
     @Mapping(target = "hearingDate",    source = "hearingDate")
     @Mapping(target = "createdAt",      source = "createdAt")
     CaseSummaryResponse toCaseSummaryResponse(CaseFile caseFile);
+
+    default String mapCaseType(CaseType caseType) {
+        return caseType != null ? caseType.getTypeCode() : null;
+    }
 }

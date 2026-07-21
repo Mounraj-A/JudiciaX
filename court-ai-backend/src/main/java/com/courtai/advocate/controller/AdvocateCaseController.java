@@ -43,6 +43,12 @@ public class AdvocateCaseController {
                 .body(ApiResponse.created("Case filed successfully", response));
     }
 
+    @GetMapping("/statistics")
+    @Operation(summary = "Get case statistics for dashboard")
+    public ResponseEntity<ApiResponse<com.courtai.advocate.dto.AdvocateCaseStatisticsResponse>> getCaseStatistics() {
+        return ResponseEntity.ok(ApiResponse.success("Statistics retrieved", caseService.getCaseStatistics()));
+    }
+
     @GetMapping
     @Operation(summary = "List my cases")
     public ResponseEntity<ApiResponse<Page<CaseSummaryResponse>>> getMyCases(
@@ -92,5 +98,37 @@ public class AdvocateCaseController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Search results for: " + keyword,
                 caseService.searchCases(keyword, pageable)));
+    }
+
+    @PostMapping("/{caseUuid}/parties")
+    @Operation(summary = "Add a party (petitioner or respondent) to a case")
+    public ResponseEntity<ApiResponse<Void>> addCaseParty(
+            @PathVariable String caseUuid,
+            @Valid @RequestBody com.courtai.advocate.dto.PartyRequest request) {
+        caseService.addCaseParty(caseUuid, request);
+        return ResponseEntity.ok(ApiResponse.success("Party added to case successfully", null));
+    }
+
+    @PostMapping("/{caseUuid}/legal-info")
+    @Operation(summary = "Save legal information for a case")
+    public ResponseEntity<ApiResponse<Void>> saveLegalInfo(
+            @PathVariable String caseUuid,
+            @Valid @RequestBody com.courtai.advocate.dto.LegalInfoRequest request) {
+        caseService.saveLegalInfo(caseUuid, request);
+        return ResponseEntity.ok(ApiResponse.success("Legal info saved successfully", null));
+    }
+
+    @PutMapping("/{caseUuid}/submit")
+    @Operation(summary = "Submit a draft case")
+    public ResponseEntity<ApiResponse<CaseResponse>> submitCase(
+            @PathVariable String caseUuid) {
+        return ResponseEntity.ok(ApiResponse.success("Case submitted", caseService.submitCase(caseUuid)));
+    }
+
+    @GetMapping("/{caseUuid}/timeline")
+    @Operation(summary = "Get the activity timeline for a case")
+    public ResponseEntity<ApiResponse<java.util.List<com.courtai.advocate.dto.CaseTimelineResponse>>> getTimeline(
+            @PathVariable String caseUuid) {
+        return ResponseEntity.ok(ApiResponse.success("Case timeline retrieved", caseService.getTimeline(caseUuid)));
     }
 }

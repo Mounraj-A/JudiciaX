@@ -1,7 +1,7 @@
 package com.courtai.casemanagement.dto;
 
 import com.courtai.common.enums.CasePriority;
-import com.courtai.common.enums.CaseType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,7 +23,7 @@ public class CaseCreateRequest {
     private String caseDescription;
 
     @NotNull(message = "Case type is required")
-    private CaseType caseType;
+    private String caseType;
 
     @NotBlank(message = "Petitioner name is required")
     @Size(max = 200)

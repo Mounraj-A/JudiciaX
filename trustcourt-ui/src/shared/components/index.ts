@@ -1,0 +1,11 @@
+// ─── Shared Components Barrel — Phase F3 ──────────────────────────────────────
+export * from './layout'
+export * from './badges'
+export * from './timeline'
+export * from './search-filter'
+export * from './datagrid'
+export * from './error'
+export * from './form'
+export * from './upload'
+export * from './notification'
+export * from './overlay'

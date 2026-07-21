@@ -2,7 +2,7 @@ package com.courtai.advocate.dto;
 
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,7 +19,7 @@ public class CaseSummaryResponse {
     private String uuid;
     private String caseNumber;
     private String caseTitle;
-    private CaseType caseType;
+    private String caseType;
     private CaseStatus status;
     private CasePriority priority;
     private String petitionerName;

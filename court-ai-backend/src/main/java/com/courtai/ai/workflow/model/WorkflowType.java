@@ -1,0 +1,12 @@
+package com.courtai.ai.workflow.model;
+
+public enum WorkflowType {
+    OCR_WORKFLOW,
+    NLP_WORKFLOW,
+    PRIORITY_WORKFLOW,
+    TRUST_WORKFLOW,
+    DUPLICATE_WORKFLOW,
+    RECOMMENDATION_WORKFLOW,
+    EXPLAINABILITY_WORKFLOW,
+    COMPOSITE_WORKFLOW
+}

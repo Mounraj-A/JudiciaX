@@ -44,6 +44,16 @@ public class CaseManagementController {
                         caseService.createCase(request, actor.getUserUuid(), actor.getRoleName())));
     }
 
+    @PostMapping("/draft")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADVOCATE','ROLE_ADMIN')")
+    @Operation(summary = "Create or update a case draft continuously from wizard")
+    public ResponseEntity<ApiResponse<CaseWizardDraftResponse>> upsertDraft(
+            @Valid @RequestBody CaseWizardDraftRequest request,
+            @AuthenticationPrincipal UserPrincipal actor) {
+        return ResponseEntity.ok(ApiResponse.success("Draft saved",
+                caseService.upsertDraft(request, actor.getUserUuid(), actor.getRoleName())));
+    }
+
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List all cases (paginated)")

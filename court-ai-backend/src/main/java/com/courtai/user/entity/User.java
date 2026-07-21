@@ -75,7 +75,7 @@ public class User extends BaseEntity {
     @Column(name = "email", nullable = false, length = 150)
     private String email;
 
-    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Phone number must be 10 digits starting with 6-9")
+    @Pattern(regexp = "^$|^(\\+91-)?[6-9]\\d{9}$", message = "Phone number must be 10 digits starting with 6-9 (optional +91-), or empty")
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 

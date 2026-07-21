@@ -1,0 +1,6 @@
+version: "1.0.0"
+policies:
+  - policy_id: "T_POL_SC_01"
+    policy_level: "SUPREME_COURT"
+    active: true
+    version: "1.0"

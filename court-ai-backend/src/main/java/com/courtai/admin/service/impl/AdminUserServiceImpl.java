@@ -40,6 +40,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final NotificationRepository notificationRepository;
     private final PasswordResetService passwordResetService;
     private final UserSessionService   userSessionService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Override
     public Page<UserResponse> getAllUsers(Pageable pageable) {
@@ -182,6 +183,63 @@ public class AdminUserServiceImpl implements AdminUserService {
         auditService.logSuccess("USER_DELETED", "User", uuid,
                 "Soft-deleted by admin: " + adminUuid);
         log.info("User [{}] soft-deleted by admin [{}]", uuid, adminUuid);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse createUser(String email, String fullName, String phone, String password, UserRole role, String adminUuid) {
+        if (userRepository.existsByEmail(email)) {
+            throw new com.courtai.exception.EmailAlreadyExistsException("User with email " + email + " already exists");
+        }
+        if (phone != null && !phone.trim().isEmpty() && userRepository.existsByPhoneNumber(phone.trim())) {
+            throw new com.courtai.exception.PhoneAlreadyExistsException("User with phone number " + phone + " already exists");
+        }
+        if (fullName != null && !fullName.trim().isEmpty() && userRepository.existsByFullName(fullName.trim())) {
+            throw new com.courtai.exception.DuplicateResourceException("User with name " + fullName + " already exists");
+        }
+        
+        String baseUsername = email != null && email.contains("@") ? email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "") : "user";
+        if (baseUsername.isEmpty()) baseUsername = "user";
+        
+        String username = baseUsername;
+        int counter = 1;
+        while (userRepository.existsByUsername(username)) {
+            username = baseUsername + counter++;
+        }
+        
+        String firstName = username;
+        String lastName = "";
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            String[] parts = fullName.trim().split(" ", 2);
+            firstName = parts[0];
+            lastName = parts.length > 1 ? parts[1] : "";
+        }
+
+        String validPhone = phone != null && !phone.trim().isEmpty() ? phone.trim() : null;
+
+        User user = User.builder()
+                .email(email)
+                .username(username)
+                .firstName(firstName)
+                .lastName(lastName)
+                .phoneNumber(validPhone)
+                .fullName(fullName)
+                .passwordHash(password != null && !password.isEmpty() ? passwordEncoder.encode(password) : passwordEncoder.encode("Password@123"))
+                .role(role != null ? role : UserRole.ROLE_ADVOCATE)
+                .accountStatus(AccountStatus.ACTIVE)
+                .isActive(true)
+                .isEmailVerified(true)
+                .isMobileVerified(false)
+                .failedLoginAttempts(0)
+                .build();
+                
+        user = userRepository.save(user);
+
+        auditService.logSuccess("USER_CREATED", "User", user.getUuid(),
+                "User created by admin: " + adminUuid);
+        log.info("User [{}] created by admin [{}]", user.getUuid(), adminUuid);
+        
+        return userMapper.toResponse(user);
     }
 
     // =========================================================

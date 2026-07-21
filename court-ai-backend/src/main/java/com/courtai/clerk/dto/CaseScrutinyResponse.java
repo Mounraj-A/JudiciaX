@@ -2,7 +2,7 @@ package com.courtai.clerk.dto;
 
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,7 +18,7 @@ public class CaseScrutinyResponse {
     private String officialCaseNumber;
     private String caseTitle;
     private String caseDescription;
-    private CaseType caseType;
+    private String caseType;
     private CaseStatus status;
     private CasePriority priority;
 

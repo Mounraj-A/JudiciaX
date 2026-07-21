@@ -1,0 +1,13 @@
+﻿export const formatCaseID   = (id: string) => id.toUpperCase()
+export const formatJudgeName = (name: string) => Hon. 
+"@ | Out-File -FilePath "src\shared\utils\formatter\formatter.utils.ts" -Encoding UTF8
+
+# i18n stubs
+@"
+{
+  "welcome":  "Welcome to TrustCourt",
+  "cases":    "Cases",
+  "judge":    "Judge",
+  "priority": "Priority",
+  "trust":    "Trust Score"
+}

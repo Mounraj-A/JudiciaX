@@ -2,7 +2,7 @@ package com.courtai;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+// @EnableJpaAuditing moved to JpaAuditingConfig to avoid DevTools hot-reload issues
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -15,7 +15,6 @@ import java.util.TimeZone;
  * prioritization using AI, secure role-based access, and audit trails.</p>
  */
 @SpringBootApplication
-@EnableJpaAuditing(auditorAwareRef = "auditorAwareImpl")
 @EnableScheduling
 @EnableAsync
 public class CourtAiBackendApplication {

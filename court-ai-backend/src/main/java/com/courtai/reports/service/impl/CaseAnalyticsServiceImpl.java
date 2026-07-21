@@ -3,7 +3,7 @@ package com.courtai.reports.service.impl;
 import com.courtai.casefile.entity.CaseFile;
 import com.courtai.casefile.repository.CaseFileRepository;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+
 import com.courtai.reports.dto.response.CaseReportResponse;
 import com.courtai.reports.dto.response.GraphDataPoint;
 import com.courtai.reports.dto.response.TimeSeriesDataPoint;
@@ -47,7 +47,7 @@ public class CaseAnalyticsServiceImpl implements CaseAnalyticsService {
 
     @Override
     public Page<CaseReportResponse> getCasesByType(String type, Pageable pageable) {
-        return caseFileRepository.findByCaseTypeAndIsDeletedFalse(CaseType.valueOf(type), pageable)
+        return caseFileRepository.findByCaseTypeAndIsDeletedFalse(String.valueOf(type), pageable)
                 .map(this::buildCaseReport);
     }
 
@@ -88,7 +88,7 @@ public class CaseAnalyticsServiceImpl implements CaseAnalyticsService {
         return CaseReportResponse.builder()
                 .caseUuid(caseFile.getUuid())
                 .caseNumber(caseFile.getCaseNumber())
-                .caseType(caseFile.getCaseType() != null ? caseFile.getCaseType().name() : null)
+                .caseType(caseFile.getCaseType() != null ? caseFile.getCaseType().getTypeCode() : null)
                 .status(caseFile.getStatus() != null ? caseFile.getStatus().name() : null)
                 .priorityScore(caseFile.getPriorityScore())
                 // Populate other necessary fields...

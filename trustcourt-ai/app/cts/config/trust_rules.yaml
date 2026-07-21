@@ -1,0 +1,19 @@
+version: "1.0.0"
+rules:
+  - rule_id: "T_RULE_01"
+    rule_name: "Document Completeness Rule"
+    rule_category: "DOCUMENT"
+    is_active: true
+    version: "1.0"
+    description: "Evaluates if mandatory document pages are present"
+    legal_reference: "Court Procedure Act 1908"
+    priority: 1
+    
+  - rule_id: "T_RULE_02"
+    rule_name: "Evidence Verification Rule"
+    rule_category: "EVIDENCE"
+    is_active: true
+    version: "1.0"
+    description: "Checks if evidence has verifiable signatures or hashes"
+    legal_reference: "IT Act 2000 Sec 65B"
+    priority: 2

@@ -4,7 +4,7 @@ import com.courtai.casecategory.entity.CaseCategory;
 import com.courtai.common.entity.BaseEntity;
 import com.courtai.common.enums.CasePriority;
 import com.courtai.common.enums.CaseStatus;
-import com.courtai.common.enums.CaseType;
+import com.courtai.master.entity.CaseType;
 import com.courtai.court.entity.Court;
 import com.courtai.judge.entity.Judge;
 import com.courtai.advocate.entity.Advocate;
@@ -68,8 +68,8 @@ public class CaseFile extends BaseEntity {
     @Column(name = "case_description", columnDefinition = "TEXT")
     private String caseDescription;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "case_type", nullable = false, length = 50)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "case_type_id", nullable = false)
     private CaseType caseType;
 
     @Enumerated(EnumType.STRING)
@@ -140,6 +140,71 @@ public class CaseFile extends BaseEntity {
     /** Applicable acts and sections — e.g., "IPC 302, 307; CrPC 154". */
     @Column(name = "act_section", length = 500)
     private String actSection;
+
+    // --- Wizard Flow Fields (Added for 17-step wizard) ---
+
+    // Step 1: Where to File
+    @Column(name = "state", length = 100)
+    private String state;
+
+    @Column(name = "district", length = 100)
+    private String district;
+
+    @Column(name = "court_establishment", length = 200)
+    private String courtEstablishment;
+
+    @Column(name = "bench", length = 100)
+    private String bench;
+
+    @Column(name = "court_hall", length = 100)
+    private String courtHall;
+
+    @Column(name = "case_nature", length = 50)
+    private String caseNature; // Civil / Criminal
+
+    @Column(name = "filing_mode", length = 50)
+    private String filingMode; // e.g. Fresh
+
+    @Column(name = "court_type", length = 100)
+    private String courtType;
+
+    @Column(name = "case_category_uuid", length = 36)
+    private String caseCategoryUuid;
+
+    @Column(name = "signing_method", length = 50)
+    private String signingMethod; // Aadhaar eSign / DSC
+
+    @Column(name = "language", length = 50)
+    private String language;
+
+    // Step 2: Case Information
+    @Column(name = "cause_title", length = 500)
+    private String causeTitle;
+
+    @Column(name = "subject", length = 500)
+    private String subject;
+
+    @Column(name = "detailed_description", columnDefinition = "TEXT")
+    private String detailedDescription;
+
+    @Column(name = "nature_of_suit", length = 200)
+    private String natureOfSuit;
+
+    @Column(name = "relief_sought", columnDefinition = "TEXT")
+    private String reliefSought;
+
+    @Column(name = "cause_of_action", columnDefinition = "TEXT")
+    private String causeOfAction;
+
+    @Column(name = "date_of_cause_action")
+    private java.time.LocalDate dateOfCauseAction;
+
+    // Step 10: Court Fees
+    @Column(name = "court_fees_total")
+    private Double courtFeesTotal;
+
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
 
     // ── Clerk Scrutiny Fields (added V17) ────────────────────────────────
 

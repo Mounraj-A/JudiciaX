@@ -6,6 +6,7 @@ import com.courtai.clerk.dto.ClerkCaseSummaryResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import com.courtai.master.entity.CaseType;
 
 /**
  * MapStruct mapper for converting {@link CaseFile} entities to clerk-facing DTOs.
@@ -18,7 +19,7 @@ public interface ClerkCaseMapper {
     @Mapping(target = "officialCaseNumber",      source = "officialCaseNumber")
     @Mapping(target = "caseTitle",              source = "caseTitle")
     @Mapping(target = "caseDescription",        source = "caseDescription")
-    @Mapping(target = "caseType",               source = "caseType")
+    @Mapping(target = "caseType",               source = "caseType.typeCode")
     @Mapping(target = "status",                 source = "status")
     @Mapping(target = "priority",               source = "priority")
     @Mapping(target = "petitionerName",         source = "petitionerName")
@@ -61,7 +62,7 @@ public interface ClerkCaseMapper {
     @Mapping(target = "caseNumber",             source = "caseNumber")
     @Mapping(target = "officialCaseNumber",      source = "officialCaseNumber")
     @Mapping(target = "caseTitle",              source = "caseTitle")
-    @Mapping(target = "caseType",               source = "caseType")
+    @Mapping(target = "caseType",               source = "caseType.typeCode")
     @Mapping(target = "status",                 source = "status")
     @Mapping(target = "petitionerName",         source = "petitionerName")
     @Mapping(target = "respondentName",         source = "respondentName")
@@ -76,5 +77,9 @@ public interface ClerkCaseMapper {
     @Named("nullSafe")
     default String nullSafe(String value) {
         return value;
+    }
+
+    default String mapCaseType(CaseType caseType) {
+        return caseType != null ? caseType.getTypeCode() : null;
     }
 }
